@@ -5,16 +5,22 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import uvicorn
 import asyncio
+import numpy as np
 
 from pdf_utils import extract_text_from_pdf
-from services.embedding_service import get_embeddings, compute_similarity
+from services.embedding_service import get_embeddings
 from services.groq_service import analyze_resume
+from services.rag_service import chunk_text, get_rag_score
 
-app = FastAPI(title="AI Resume Screener")
+app = FastAPI(title="AI Resume Screener (RAG Enhanced)")
 
-# In-memory storage for resumes and their embeddings
-# Each item: {"filename": str, "text": str, "embedding": np.ndarray}
-stored_resumes: list[dict] = []
+# In-memory storage for resume chunks
+# Each item: {"filename": str, "chunk": str, "embedding": np.ndarray}
+chunk_repository: list[dict] = []
+
+# Grouped full text for LLM analysis
+# { filename: full_text }
+resume_full_texts: dict[str, str] = {}
 
 class RankRequest(BaseModel):
     job_description: str
@@ -120,18 +126,27 @@ def upload_page() -> str:
             }
             .Decision-Shortlist { color: #34d399; }
             .Decision-Reject { color: #f87171; }
+            .rag-pill { 
+                font-size: 10px; 
+                background: #334155; 
+                padding: 2px 6px; 
+                border-radius: 4px; 
+                vertical-align: middle;
+                margin-left: 8px;
+                color: #94a3b8;
+            }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>AI Resume Screener</h1>
-            <p style="color: #94a3b8; margin-bottom: 40px; font-size: 1.1rem;">Upload, analyze, and rank talent with LLM-powered precision.</p>
+            <h1>AI Resume Screener <span style="font-size: 1rem; opacity: 0.6;">(RAG mode)</span></h1>
+            <p style="color: #94a3b8; margin-bottom: 40px; font-size: 1.1rem;">Upload, analyze, and rank talent with Chunk-based RAG and LLM Analysis.</p>
 
             <div class="section">
                 <h3>1. Upload Resumes</h3>
                 <form id="upload-form">
                     <input id="files" name="files" type="file" accept=".pdf" multiple required />
-                    <button type="submit">Upload & Vectorize</button>
+                    <button type="submit">Upload & Chunk</button>
                 </form>
                 <pre id="upload-result">Awaiting uploads...</pre>
             </div>
@@ -139,8 +154,8 @@ def upload_page() -> str:
             <div class="section">
                 <h3>2. Analysis & Ranking</h3>
                 <form id="rank-form">
-                    <textarea id="job-desc" placeholder="Paste the Job Description (JD) here to begin analysis..." required></textarea>
-                    <button type="submit">Run AI Screening Analysis</button>
+                    <textarea id="job-desc" placeholder="Paste the Job Description (JD) here to begin RAG analysis..." required></textarea>
+                    <button type="submit">Run RAG + AI Screening</button>
                 </form>
                 <div id="rank-result"></div>
             </div>
@@ -158,12 +173,12 @@ def upload_page() -> str:
                 for (const file of document.getElementById("files").files) {
                     formData.append("files", file);
                 }
-                uploadResult.textContent = "⚙️ Extracting text and generating embeddings...";
+                uploadResult.textContent = "⚙️ Extracting text and generating split chunks...";
                 
                 try {
                     const res = await fetch("/upload-resumes", { method: "POST", body: formData });
                     const data = await res.json();
-                    uploadResult.textContent = `✅ Successfully processed ${data.count} resumes. Ready for ranking.`;
+                    uploadResult.textContent = `✅ Successfully processed ${data.count} resumes into ${data.total_chunks} search chunks.`;
                 } catch (err) {
                     uploadResult.textContent = "❌ Upload failed.";
                 }
@@ -172,7 +187,7 @@ def upload_page() -> str:
             rankForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
                 const jd = document.getElementById("job-desc").value;
-                rankResult.innerHTML = "<div style='text-align:center; padding: 40px;'>🔮 AI is analyzing candidate alignment... this may take a few seconds.</div>";
+                rankResult.innerHTML = "<div style='text-align:center; padding: 40px;'>🔮 Performing RAG retrieval and LLM analysis...</div>";
 
                 try {
                     const res = await fetch("/rank", {
@@ -185,34 +200,36 @@ def upload_page() -> str:
                     rankResult.innerHTML = data.rankings.map(r => `
                         <div class="result-card">
                             <div style="display:flex; justify-content: space-between; align-items: flex-start;">
-                                <h4 style="margin:0">${r.filename}</h4>
-                                <span class="score-tag">${(r.score * 100).toFixed(0)}%</span>
+                                <div>
+                                    <h4 style="margin:0">${r.filename} <span class="rag-pill">RAG Score: ${(r.score * 100).toFixed(1)}%</span></h4>
+                                </div>
+                                <span class="score-tag">${(r.llm_analysis.score * 100).toFixed(0)}%</span>
                             </div>
                             
                             <div style="margin: 16px 0;">
-                                <span class="decision Decision-${r.decision}">${r.decision}</span>
+                                <span class="decision Decision-${r.llm_analysis.decision}">${r.llm_analysis.decision}</span>
                             </div>
 
                             <div style="margin-bottom: 16px;">
                                 <strong>Matched Skills:</strong><br/>
-                                ${r.matched_skills.map(s => `<span class="badge badge-matched">${s}</span>`).join("")}
-                                ${r.matched_skills.length === 0 ? "None detected" : ""}
+                                ${r.llm_analysis.matched_skills.map(s => `<span class="badge badge-matched">${s}</span>`).join("")}
+                                ${r.llm_analysis.matched_skills.length === 0 ? "None detected" : ""}
                             </div>
 
                             <div style="margin-bottom: 16px;">
                                 <strong>Missing Skills:</strong><br/>
-                                ${r.missing_skills.map(s => `<span class="badge badge-missing">${s}</span>`).join("")}
-                                ${r.missing_skills.length === 0 ? "None detected" : ""}
+                                ${r.llm_analysis.missing_skills.map(s => `<span class="badge badge-missing">${s}</span>`).join("")}
+                                ${r.llm_analysis.missing_skills.length === 0 ? "None detected" : ""}
                             </div>
 
                             <div style="font-size: 14px; grid-template-columns: 1fr 1fr; display: grid; gap: 20px;">
-                                <div><strong style="color:#34d399">Strengths:</strong><p>${r.strengths}</p></div>
-                                <div><strong style="color:#f87171">Weaknesses:</strong><p>${r.weaknesses}</p></div>
+                                <div><strong style="color:#34d399">Strengths:</strong><p>${r.llm_analysis.strengths}</p></div>
+                                <div><strong style="color:#f87171">Weaknesses:</strong><p>${r.llm_analysis.weaknesses}</p></div>
                             </div>
                         </div>
                     `).join("");
                 } catch (err) {
-                    rankResult.innerHTML = "<div style='color:#f87171; padding: 20px;'>⚠️ Analysis failed. Please check your Groq API key and connection.</div>";
+                    rankResult.innerHTML = "<div style='color:#f87171; padding: 20px;'>⚠️ Analysis failed. Check console.</div>";
                 }
             });
         </script>
@@ -222,54 +239,78 @@ def upload_page() -> str:
 
 @app.post("/upload-resumes")
 async def upload_resumes(files: list[UploadFile] = File(...)):
-    new_resumes = []
+    new_chunks_count = 0
     
     for uploaded_file in files:
+        filename = uploaded_file.filename or "uploaded.pdf"
         pdf_bytes = await uploaded_file.read()
         extracted_text = extract_text_from_pdf(pdf_bytes)
         
-        # Store metadata
-        resume_data = {
-            "filename": uploaded_file.filename or "uploaded.pdf",
-            "text": extracted_text,
-        }
-        new_resumes.append(resume_data)
+        # Store full text for LLM
+        resume_full_texts[filename] = extracted_text
+        
+        # Chunk text
+        chunks = chunk_text(extracted_text)
+        if chunks:
+            # Generate embeddings for all chunks
+            embeddings = get_embeddings(chunks)
+            for i, chunk_text_content in enumerate(chunks):
+                chunk_repository.append({
+                    "filename": filename,
+                    "chunk": chunk_text_content,
+                    "embedding": embeddings[i]
+                })
+                new_chunks_count += 1
+                
         await uploaded_file.close()
 
-    # Bulk compute embeddings for efficiency
-    texts = [r["text"] for r in new_resumes]
-    if texts:
-        embeddings = get_embeddings(texts)
-        # Store in global memory
-        for i, resume in enumerate(new_resumes):
-            resume["embedding"] = embeddings[i]
-            stored_resumes.append(resume)
-
-    return {"message": "Success", "count": len(new_resumes)}
+    return {
+        "message": "Success", 
+        "count": len(files), 
+        "total_chunks": new_chunks_count
+    }
 
 @app.post("/rank")
 async def rank_resumes(request: RankRequest):
-    if not stored_resumes:
+    if not chunk_repository:
         return {"error": "No resumes have been uploaded yet."}
     
-    # Process each resume with Groq for detailed analysis
-    # We do this in parallel to keep it fast
-    tasks = [analyze_resume(request.job_description, r["text"]) for r in stored_resumes]
-    analyses = await asyncio.gather(*[asyncio.to_thread(lambda a, b: analyze_resume(a, b), request.job_description, r["text"]) for r in stored_resumes])
+    # Get embedding for job description
+    jd_embedding = get_embeddings([request.job_description])[0]
     
-    # Prepare results
-    rankings = []
-    for i, resume in enumerate(stored_resumes):
-        analysis = analyses[i]
-        rankings.append({
-            "filename": resume["filename"],
-            **analysis # Merge all fields from LLM response
+    # 1. RAG Ranking Logic
+    # Group chunks by filename
+    filenames = list(resume_full_texts.keys())
+    rag_rankings = []
+    
+    for filename in filenames:
+        resume_chunks = [c for c in chunk_repository if c["filename"] == filename]
+        rag_score = get_rag_score(jd_embedding, resume_chunks)
+        rag_rankings.append({
+            "filename": filename,
+            "score": rag_score
         })
     
-    # Sort by score descending
-    rankings.sort(key=lambda x: x["score"], reverse=True)
+    # 2. Parallel LLM Analysis (for top candidates or all if small)
+    # We'll do it for all existing resumes since they are in-memory (small scale)
+    analyses = await asyncio.gather(*[
+        asyncio.to_thread(analyze_resume, request.job_description, resume_full_texts[f]) 
+        for f in filenames
+    ])
     
-    return {"rankings": rankings}
+    # Combine results
+    final_output = []
+    for i, rag_info in enumerate(rag_rankings):
+        final_output.append({
+            "filename": rag_info["filename"],
+            "score": rag_info["score"],
+            "llm_analysis": analyses[i]
+        })
+    
+    # Sort by RAG score descending
+    final_output.sort(key=lambda x: x["score"], reverse=True)
+    
+    return {"rankings": final_output}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
