@@ -27,6 +27,7 @@ function App() {
 
   const handleUpload = async (files) => {
     setUploadStatus('Syncing...');
+    setError('');
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
 
@@ -35,10 +36,12 @@ function App() {
       setUploadStatus(`Ready (${res.data.count})`);
       const newFiles = files.map(f => f.name);
       setUploadedFiles(prev => [...new Set([...prev, ...newFiles])]);
-      setError('');
     } catch (err) {
       setUploadStatus('Sync failed');
-      setError('Check backend connection');
+      const errorMsg = err.response?.data?.detail || 'Upload failed. Ensure resumes are valid text-based PDFs.';
+      setError(errorMsg);
+      // Ensure we don't enable the Analyze button if upload failed
+      setUploadedFiles([]);
     }
   };
 

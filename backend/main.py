@@ -105,11 +105,20 @@ async def upload_resumes(files: list[UploadFile] = File(...)):
                 continue
                 
         logger.info(f"Batch processing complete. Total new chunks added: {new_chunks_count}")
+        
+        if new_chunks_count == 0:
+            raise HTTPException(
+                status_code=400, 
+                detail="No text could be extracted from the uploaded resumes. Please ensure they are not empty or image-only PDFs."
+            )
+
         return {
             "count": len(files), 
             "chunks": new_chunks_count, 
-            "status": "success" if new_chunks_count > 0 else "failed (no valid content extracted)"
+            "status": "success"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
