@@ -282,11 +282,11 @@ function App() {
 
       </main>
 
-      <footer className="w-full py-10 bg-black/5 border-t border-black/5 flex flex-col items-center gap-2">
-            <span className="text-[10px] font-black text-black/40 uppercase tracking-[0.4em]">
+      <footer className="w-full py-12 bg-black/[0.07] border-t border-black/5 flex flex-col items-center gap-2">
+            <span className="text-[10px] font-black text-black/60 uppercase tracking-[0.4em]">
                 &copy; 2026 Developed by Shivam8292
             </span>
-            <span className="text-[9px] font-bold text-black/20 uppercase tracking-[0.2em]">
+            <span className="text-[9px] font-bold text-black/40 uppercase tracking-[0.2em]">
                 Intelligent Screening System &bull; All rights reserved
             </span>
       </footer>
