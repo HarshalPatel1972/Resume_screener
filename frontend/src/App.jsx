@@ -163,10 +163,21 @@ function App() {
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="w-full"
             >
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="font-['Instrument_Serif'] text-[32px] font-normal italic">
-                  Analysis Results
-                </h2>
+              <div className="flex items-center justify-between mb-8 group">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={resetToSetup}
+                    className="p-2 -ml-2 hover:bg-[var(--bg-sunken)] rounded-full transition-colors text-[var(--text-secondary)]"
+                    title="Back to Setup"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <h2 className="font-['Instrument_Serif'] text-[32px] font-normal italic">
+                    Analysis Results
+                  </h2>
+                </div>
                 {selectedCandidates.length === 2 && (
                   <button
                     onClick={triggerComparison}
