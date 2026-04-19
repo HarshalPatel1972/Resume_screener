@@ -25,6 +25,22 @@ This repository features a complete UI/UX overhaul inspired by high-end minimali
 
 The system is built on a robust distributed architecture ensuring zero-persistence local state and persistent cloud-based intelligence.
 
+### 🔄 Logic Flow & System Architecture
+```mermaid
+graph TD
+    A["📄 PDF Resume Selection"] --> B["⚡ Fast-Extraction Pipeline"]
+    B --> C["🧠 Semantic Vectorization"]
+    C --> D[("☁️ Supabase Cloud Vault")]
+    E["📋 Job Description Input"] --> F["🔍 Contextual Retrieval (RAG)"]
+    D -.-> F
+    F --> G["🤖 AI Intelligence Ranking"]
+    G --> H["✨  Cinematic UI Presentation"]
+    
+    style H fill:#000,color:#fff,stroke:#fff,stroke-width:2px
+    style D fill:#3ECF8E,color:#fff,stroke:#3ECF8E
+    style G fill:#0066CC,color:#fff,stroke:#0066CC
+```
+
 ### 🧩 Backend (FastAPI)
 - **RAG Pipeline**: Utilizes vector embeddings to perform semantic search across candidate resumes.
 - **LLM Synthesis**: Direct integration with high-end models for candidate ranking and comparative analysis.
