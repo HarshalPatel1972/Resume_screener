@@ -271,25 +271,45 @@ async def rank_resumes(request: RankRequest):
         logger.error(f"CRITICAL Rank Error: {str(e)}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Ranking Pipeline Failed: {str(e)}")
 
-@app.post("/compare")
-async def compare_endpoint(request: CompareRequest):
+@app.delete("/resumes/{filename}")
+async def delete_resume(filename: str):
+    """Deletes a specific resume and its chunks from the database and memory."""
     try:
-        c1 = next((r for r in latest_rankings if r["filename"] == request.candidates[0]), None)
-        c2 = next((r for r in latest_rankings if r["filename"] == request.candidates[1]), None)
+        # 1. Delete from Supabase
+        supabase.table("chunks").delete().eq("filename", filename).execute()
+        supabase.table("resumes").delete().eq("filename", filename).execute()
         
-        if not c1 or not c2:
-            raise HTTPException(status_code=404, detail="Candidates not found in latest results. Please re-rank.")
-            
-        res = await asyncio.to_thread(compare_candidates, request.job_description, c1, c2)
-        return {
-            "better_candidate": res.get("better_candidate", "N/A"),
-            "reason": res.get("reason", "Unknown error in comparison"),
-            "comparison": { c1["filename"]: c1, c2["filename"]: c2 }
-        }
+        # 2. Clear from memory
+        if filename in resume_full_texts:
+            del resume_full_texts[filename]
+        
+        global chunk_repository
+        chunk_repository = [c for c in chunk_repository if c["filename"] != filename]
+        
+        logger.info(f"Deleted {filename} from cloud and memory.")
+        return {"status": "success", "message": f"Deleted {filename}"}
     except Exception as e:
-        import traceback
-        logger.error(f"Compare Error: {str(e)}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Comparison tool failed: {str(e)}")
+        logger.error(f"Delete error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete: {str(e)}")
+
+@app.post("/clear-data")
+async def clear_all_data():
+    """Clears all resumes and chunks from the system."""
+    try:
+        # 1. Clear Supabase tables (be careful with this in production!)
+        # Using a broad filter to match all rows
+        supabase.table("chunks").delete().neq("filename", "dUMMY_vALUE").execute()
+        supabase.table("resumes").delete().neq("filename", "dUMMY_vALUE").execute()
+        
+        # 2. Reset memory
+        resume_full_texts.clear()
+        chunk_repository.clear()
+        
+        logger.info("Database cleared successfully.")
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Clear All error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Clear All failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

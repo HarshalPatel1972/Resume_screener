@@ -60,8 +60,18 @@ function App() {
     }
   };
 
-  const handleRemoveFile = (filename) => {
-    setUploadedFiles(prev => prev.filter(f => f !== filename));
+  const handleRemoveFile = async (filename) => {
+    try {
+      await axios.delete(`${API_BASE}/resumes/${filename}`);
+      setUploadedFiles(prev => prev.filter(f => f !== filename));
+      setUploadStatus(prev => {
+        const count = uploadedFiles.length - 1;
+        return count > 0 ? `Ready (${count})` : '';
+      });
+    } catch (err) {
+      console.error("Failed to delete resume", err);
+      setError("Failed to delete resume from cloud.");
+    }
   };
 
   const handleRank = async () => {
