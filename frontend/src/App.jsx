@@ -70,7 +70,8 @@ function App() {
       });
     } catch (err) {
       console.error("Failed to delete resume", err);
-      setError("Failed to delete resume from cloud.");
+      const msg = err.response?.data?.detail || err.message || "Failed to delete resume.";
+      setError(`Delete Failed: ${msg}`);
     }
   };
 
@@ -81,7 +82,8 @@ function App() {
       const res = await axios.post(`${API_BASE}/rank`, { job_description: jd });
       setResults(res.data);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Analysis failed.');
+      const msg = err.response?.data?.detail || err.message || "Analysis failed.";
+      setError(`Analysis Failed: ${msg}`);
     } finally {
       setLoading(false);
     }
