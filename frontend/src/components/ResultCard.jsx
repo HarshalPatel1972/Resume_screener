@@ -31,7 +31,7 @@ const ResultCard = ({ candidate, onCompareSelect, isSelected, rank }) => {
 
     return (
         <div
-            className={`relative w-full bg-[var(--bg-surface)] rounded-2xl p-6 border transition-colors duration-200 shadow-sm ${isSelected ? 'border-[var(--accent)]' : 'border-[var(--border)] hover:border-[var(--border-strong)]'
+            className={`relative w-full bg-white rounded-[24px] p-8 border transition-all duration-400 shadow-sm ${isSelected ? 'border-black ring-4 ring-black/5' : 'border-[#D2D2D7]/40 hover:border-[#D2D2D7] hover:shadow-md'
                 }`}
         >
             <div
@@ -114,12 +114,10 @@ const ResultCard = ({ candidate, onCompareSelect, isSelected, rank }) => {
                 </button>
 
                 <label className="flex items-center gap-2 cursor-pointer group">
-                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-[var(--accent)] border-[var(--accent)]' : 'border-[var(--border-strong)] bg-white group-hover:border-[var(--accent)]'
+                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all duration-300 ${isSelected ? 'bg-black border-black' : 'border-[#D2D2D7] bg-white group-hover:border-black'
                         }`}>
                         {isSelected && (
-                            <svg width="12" height="9" viewBox="0 0 12 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M1 5L4 8L11 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
+                            <div className="h-1.5 w-1.5 rounded-full bg-white" />
                         )}
                     </div>
                     <span className="text-[13px] font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">
