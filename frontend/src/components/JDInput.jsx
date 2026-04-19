@@ -16,8 +16,9 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
         return () => clearInterval(interval);
     }, [loading]);
 
-    const minChars = 50;
-    const remaining = minChars - value.trim().length;
+    const criteria = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    const minCriteria = 3;
+    const remaining = minCriteria - criteria.length;
     const isQualityMet = remaining <= 0;
 
     return (
@@ -25,27 +26,27 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
             <div className="flex items-center justify-between px-2">
                 <div className="flex items-center gap-3">
                     <label className="text-[10px] font-black text-black/20 uppercase tracking-[0.4em]">
-                        Target Profile
+                        Requirement Stack
                     </label>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                         {[1, 2, 3].map((i) => (
                             <div 
                                 key={i} 
-                                className={`h-1 w-3 rounded-full transition-all duration-500 ${
-                                    value.trim().length > (i * 15) ? 'bg-black' : 'bg-black/5'
+                                className={`h-1.5 w-4 rounded-full transition-all duration-700 ${
+                                    criteria.length >= i ? 'bg-black' : 'bg-black/5'
                                 }`} 
                             />
                         ))}
                     </div>
                 </div>
                 {!isQualityMet && !disabled && (
-                    <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
-                        {remaining} chars to reach depth
+                    <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest leading-none">
+                        {remaining} {remaining === 1 ? 'Skill' : 'Skills'} Remaining
                     </span>
                 )}
                 {isQualityMet && !disabled && (
                     <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest animate-pulse">
-                        Ready for Screening
+                        Stack Finalized
                     </span>
                 )}
             </div>
@@ -53,7 +54,7 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
             <textarea
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                placeholder="Detail the technical requirements and culture fit..."
+                placeholder="e.g. React, TypeScript, 5+ Years Experience, AWS..."
                 className={`
                     w-full min-h-[160px] bg-white border rounded-[24px] p-8 text-[15px] font-medium text-black 
                     placeholder-[#86868B]/40 focus:outline-none resize-none transition-all duration-500
@@ -77,9 +78,9 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
                 ) : disabled ? (
                     "Upload Resumes First"
                 ) : !isQualityMet ? (
-                    `Need more depth (${remaining})`
+                    `Need ${remaining} More ${remaining === 1 ? 'Criteria' : 'Criterias'}`
                 ) : (
-                    "Initialize Analysis"
+                    "Run Intelligence"
                 )}
             </button>
         </div>
