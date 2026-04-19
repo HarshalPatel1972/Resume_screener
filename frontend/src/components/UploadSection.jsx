@@ -61,63 +61,6 @@ const UploadSection = ({ onUpload, status, uploadedFiles, onRemoveFile }) => {
                 </div>
             </div>
 
-            {/* Fluid File List */}
-            <AnimatePresence mode="popLayout">
-                {uploadedFiles && uploadedFiles.length > 0 && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-6"
-                    >
-                        <div className="flex items-center justify-between px-2">
-                            <div className="flex items-center gap-2">
-                                <span className="text-[12px] font-black text-black/20 uppercase tracking-[0.3em]">Resource Registry</span>
-                                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-                            </div>
-                            <button 
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if(window.confirm("Permanent cloud wipe?")) onRemoveFile('__ALL__');
-                                }}
-                                className="flex items-center justify-center px-4 py-2 bg-white border border-black/10 rounded-full text-[11px] font-bold text-black hover:bg-black hover:text-white transition-all duration-300 active:scale-95 shadow-sm"
-                            >
-                                Reset Registry
-                            </button>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 gap-2">
-                            {uploadedFiles.map((file, idx) => (
-                                <motion.div 
-                                    layout
-                                    key={file} 
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: idx * 0.05 }}
-                                    className="group flex items-center justify-between bg-white border border-[#D2D2D7]/30 rounded-2xl px-5 py-4 hover:border-[#D2D2D7] hover:shadow-sm transition-all duration-300"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 bg-[#F5F5F7] rounded-xl flex items-center justify-center text-[#1D1D1F]">
-                                            <FileText size={18} strokeWidth={1.5} />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[15px] text-[#1D1D1F] font-bold truncate leading-tight uppercase tracking-tight">{file}</span>
-                                            <span className="text-[10px] text-[#86868B] font-bold uppercase tracking-widest mt-1">Processed & Ready</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onRemoveFile(file);
-                                        }}
-                                        className="p-3 opacity-0 group-hover:opacity-100 text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FF3B30]/5 rounded-full transition-all duration-200 translate-x-2 group-hover:translate-x-0"
-                                    >
-                                        <X size={18} strokeWidth={2} />
-                                    </button>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
             </AnimatePresence>
         </div>
     );
