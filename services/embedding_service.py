@@ -11,8 +11,10 @@ load_dotenv()
 HF_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
 HF_TOKEN = os.getenv("HF_TOKEN", "")
 
+import time
+
 def get_embeddings(texts: list[str]) -> list[np.ndarray]:
-    """Generate embeddings using HuggingFace Inference API with batching."""
+    """Generate embeddings using HuggingFace Inference API with batching and retries."""
     if not texts:
         return []
     
@@ -21,22 +23,37 @@ def get_embeddings(texts: list[str]) -> list[np.ndarray]:
         headers["Authorization"] = f"Bearer {HF_TOKEN}"
     
     all_embeddings = []
-    batch_size = 5 # Small batches to avoid timeout
+    batch_size = 5
     
     for i in range(0, len(texts), batch_size):
         batch = texts[i : i + batch_size]
-        response = requests.post(
-            HF_API_URL,
-            headers=headers,
-            json={"inputs": batch, "options": {"wait_for_model": True}},
-            timeout=20 # 20 second timeout per batch
-        )
         
-        if response.status_code != 200:
-            raise Exception(f"HF API error: {response.status_code} - {response.text}")
-        
-        batch_results = response.json()
-        all_embeddings.extend(batch_results)
+        # Retry logic
+        for attempt in range(3):
+            try:
+                response = requests.post(
+                    HF_API_URL,
+                    headers=headers,
+                    json={"inputs": batch, "options": {"wait_for_model": True}},
+                    timeout=30
+                )
+                
+                if response.status_code == 200:
+                    batch_results = response.json()
+                    all_embeddings.extend(batch_results)
+                    break # Success, move to next batch
+                
+                # If loading, wait and retry
+                if response.status_code == 503 and attempt < 2:
+                    time.sleep(5 * (attempt + 1))
+                    continue
+                
+                raise Exception(f"HF API error: {response.status_code} - {response.text}")
+            except requests.exceptions.RequestException as e:
+                if attempt < 2:
+                    time.sleep(2)
+                    continue
+                raise e
         
     return [np.array(emb) for emb in all_embeddings]
 
