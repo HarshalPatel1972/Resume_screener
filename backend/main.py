@@ -56,6 +56,8 @@ async def upload_resumes(files: list[UploadFile] = File(...)):
     try:
         logger.info(f"--- Starting Upload Process for {len(files)} files ---")
         new_chunks_count = 0
+        processing_errors = []
+
         for file in files:
             fname = file.filename
             logger.info(f"Processing candidate file: {fname}")
@@ -63,13 +65,15 @@ async def upload_resumes(files: list[UploadFile] = File(...)):
             try:
                 content = await file.read()
                 if not content:
-                    logger.warning(f"File {fname} is empty, skipping.")
+                    processing_errors.append(f"{fname}: File is empty")
                     continue
                     
                 # Extract text
                 text = await asyncio.to_thread(extract_text_from_pdf, content)
+                logger.info(f"Extracted {len(text)} chars from {fname}")
+                
                 if not text.strip():
-                    logger.warning(f"No text extracted from {fname}")
+                    processing_errors.append(f"{fname}: No readable text (might be scanned/image-only PDF)")
                     continue
                     
                 resume_full_texts[fname] = text
@@ -77,17 +81,16 @@ async def upload_resumes(files: list[UploadFile] = File(...)):
                 # Chunk text
                 chunks = chunk_text(text)
                 if not chunks:
-                    logger.warning(f"Text too short to chunk in {fname}")
+                    processing_errors.append(f"{fname}: Text too short to process")
                     continue
                 
                 # Generate embeddings
                 logger.info(f"Generating embeddings for {len(chunks)} chunks of {fname}")
                 embeddings = await asyncio.to_thread(get_embeddings, chunks)
                 
-                # Ensure we have embeddings for all chunks before adding to repository
-                if len(embeddings) != len(chunks):
-                    logger.error(f"Mismatch in embeddings ({len(embeddings)}) and chunks ({len(chunks)}) for {fname}")
-                    continue # Skip this file or raise error
+                if not embeddings or len(embeddings) != len(chunks):
+                    processing_errors.append(f"{fname}: Embedding generation mismatch or failure")
+                    continue
                 
                 for i, chunk_content in enumerate(chunks):
                     chunk_repository.append({
@@ -100,22 +103,25 @@ async def upload_resumes(files: list[UploadFile] = File(...)):
                 logger.info(f"Successfully processed {fname}")
                 
             except Exception as file_error:
-                logger.error(f"Failed to process file {fname}: {str(file_error)}")
-                # We continue with other files instead of crashing the whole request
+                error_msg = f"{fname}: {str(file_error)}"
+                logger.error(f"Failed to process file {fname}: {error_msg}")
+                processing_errors.append(error_msg)
                 continue
                 
         logger.info(f"Batch processing complete. Total new chunks added: {new_chunks_count}")
         
         if new_chunks_count == 0:
+            error_details = "; ".join(processing_errors) if processing_errors else "Unknown processing error"
             raise HTTPException(
                 status_code=400, 
-                detail="No text could be extracted from the uploaded resumes. Please ensure they are not empty or image-only PDFs."
+                detail=f"Upload Failed: {error_details}"
             )
 
         return {
             "count": len(files), 
             "chunks": new_chunks_count, 
-            "status": "success"
+            "status": "success",
+            "errors": processing_errors # Return partial errors if any
         }
     except HTTPException:
         raise
