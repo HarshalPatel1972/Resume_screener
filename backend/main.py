@@ -1,13 +1,17 @@
+from __future__ import annotations
+import asyncio
+import os
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from supabase import create_client, Client
 import numpy as np
 import json
+import logging
+from dotenv import load_dotenv
 
-# Supabase Configuration
-SUPABASE_URL = "https://ngexukqvudjsyhkwovmx.supabase.co"
-SUPABASE_KEY = os.getenv("SUPABASE_KEY") or "sb_publishable_m0zc0T2UIo7X3LZ7mTEwjg_LMjlMztQ" 
-
-# Initialize Client
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Load Environment
+load_dotenv()
 
 # Internal Imports
 from utils.pdf_parser import extract_text_from_pdf
@@ -16,11 +20,16 @@ from services.embedding_service import get_embeddings
 from services.llm_service import analyze_resume, compare_candidates
 from services.rag_service import calculate_rag_rankings
 
-import logging
-
+# Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Supabase Configuration
+SUPABASE_URL = os.getenv("SUPABASE_URL") or "https://ngexukqvudjsyhkwovmx.supabase.co"
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_KEY") or "sb_publishable_m0zc0T2UIo7X3LZ7mTEwjg_LMjlMztQ" 
+
+# Initialize Clients
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 app = FastAPI(title="AI Resume Screener API")
 
 # Enable CORS
@@ -72,6 +81,10 @@ class CompareRequest(BaseModel):
 async def get_uploaded_resumes():
     """Returns the list of filenames currently in the persistent cloud database."""
     return {"resumes": list(resume_full_texts.keys())}
+
+@app.get("/")
+def health_check():
+    return {"status": "healthy"}
 
 @app.post("/upload-resumes")
 async def upload_resumes(files: list[UploadFile] = File(...)):
