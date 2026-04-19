@@ -40,8 +40,13 @@ def get_embeddings(texts: list[str]) -> list[np.ndarray]:
                 
                 if response.status_code == 200:
                     batch_results = response.json()
-                    all_embeddings.extend(batch_results)
-                    break # Success, move to next batch
+                    # Ensure batch_results is always a list of embeddings
+                    if isinstance(batch_results, list) and len(batch) > 0:
+                        # If HF returns a single vector for multiple inputs (rare bug)
+                        if not isinstance(batch_results[0], list):
+                            batch_results = [batch_results]
+                        all_embeddings.extend(batch_results)
+                    break 
                 
                 # If loading, wait and retry
                 if response.status_code == 503 and attempt < 2:

@@ -70,8 +70,10 @@ async def upload_resumes(files: list[UploadFile] = File(...)):
         logger.info(f"Processed {len(files)} files, generated {new_chunks_count} chunks.")
         return {"count": len(files), "chunks": new_chunks_count}
     except Exception as e:
-        logger.error(f"Upload error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        error_details = traceback.format_exc()
+        logger.error(f"Upload error: {str(e)}\n{error_details}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 @app.post("/rank")
 async def rank_resumes(request: RankRequest):
