@@ -280,6 +280,12 @@ function App() {
           </motion.div>
         )}
 
+        <footer className="mt-20 py-8 border-t border-black/[0.03] flex justify-center">
+            <span className="text-[10px] font-black text-black/30 uppercase tracking-[0.4em]">
+                &copy; 2026 Harshal Patel &bull; Intelligent Screening
+            </span>
+        </footer>
+
       </main>
 
       {comparison && (
