@@ -271,11 +271,13 @@ async def rank_resumes(request: RankRequest):
         logger.error(f"CRITICAL Rank Error: {str(e)}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Ranking Pipeline Failed: {str(e)}")
 
-@app.delete("/resumes/{filename}")
+@app.delete("/delete-resume")
 async def delete_resume(filename: str):
-    """Deletes a specific resume and its chunks from the database and memory."""
+    """Deletes a specific resume and its chunks using a query parameter for robustness."""
     try:
+        logger.info(f"Attempting to delete: {filename}")
         # 1. Delete from Supabase
+        # Note: We use .execute() and check for error status in result if needed
         supabase.table("chunks").delete().eq("filename", filename).execute()
         supabase.table("resumes").delete().eq("filename", filename).execute()
         
@@ -286,27 +288,26 @@ async def delete_resume(filename: str):
         global chunk_repository
         chunk_repository = [c for c in chunk_repository if c["filename"] != filename]
         
-        logger.info(f"Deleted {filename} from cloud and memory.")
         return {"status": "success", "message": f"Deleted {filename}"}
     except Exception as e:
-        logger.error(f"Delete error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to delete: {str(e)}")
+        logger.error(f"Delete error for {filename}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete {filename}: {str(e)}")
 
 @app.post("/clear-data")
 async def clear_all_data():
     """Clears all resumes and chunks from the system."""
     try:
-        # 1. Clear Supabase tables (be careful with this in production!)
-        # Using a broad filter to match all rows
-        supabase.table("chunks").delete().neq("filename", "dUMMY_vALUE").execute()
-        supabase.table("resumes").delete().neq("filename", "dUMMY_vALUE").execute()
+        logger.info("CRITICAL: Clearing all cloud and memory data...")
+        # To delete all rows with the anon key and RLS disabled, 
+        # we can use a filter that matches everything.
+        supabase.table("chunks").delete().neq("filename", "!!!NOT_A_FILE!!!").execute()
+        supabase.table("resumes").delete().neq("filename", "!!!NOT_A_FILE!!!").execute()
         
-        # 2. Reset memory
+        # Reset memory
         resume_full_texts.clear()
         chunk_repository.clear()
         
-        logger.info("Database cleared successfully.")
-        return {"status": "success"}
+        return {"status": "success", "message": "All data cleared"}
     except Exception as e:
         logger.error(f"Clear All error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Clear All failed: {str(e)}")

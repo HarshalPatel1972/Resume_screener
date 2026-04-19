@@ -61,8 +61,11 @@ function App() {
   };
 
   const handleRemoveFile = async (filename) => {
+    if (filename === '__ALL__') {
+      return handleClearAll();
+    }
     try {
-      await axios.delete(`${API_BASE}/resumes/${filename}`);
+      await axios.delete(`${API_BASE}/delete-resume?filename=${encodeURIComponent(filename)}`);
       setUploadedFiles(prev => prev.filter(f => f !== filename));
       setUploadStatus(prev => {
         const count = uploadedFiles.length - 1;
@@ -72,6 +75,18 @@ function App() {
       console.error("Failed to delete resume", err);
       const msg = err.response?.data?.detail || err.message || "Failed to delete resume.";
       setError(`Delete Failed: ${msg}`);
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      await axios.post(`${API_BASE}/clear-data`);
+      setUploadedFiles([]);
+      setUploadStatus('');
+      setResults([]);
+      setError('');
+    } catch (err) {
+      setError("Failed to clear cloud data.");
     }
   };
 

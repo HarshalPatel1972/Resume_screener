@@ -36,22 +36,38 @@ const UploadSection = ({ onUpload, status, uploadedFiles, onRemoveFile }) => {
 
             {/* Inline Loaded Chips */}
             {uploadedFiles && uploadedFiles.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                    {uploadedFiles.map(file => (
-                        <div key={file} className="flex items-center gap-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-3 py-1.5 shadow-sm">
-                            <FileText size={14} className="text-[var(--text-secondary)]" />
-                            <span className="text-[13px] font-medium text-[var(--text-primary)] truncate max-w-[200px]">{file}</span>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onRemoveFile(file);
-                                }}
-                                className="text-[var(--text-tertiary)] hover:text-[var(--red)] transition-colors ml-1"
-                            >
-                                <X size={14} />
-                            </button>
-                        </div>
-                    ))}
+                <div className="mt-6">
+                    <div className="flex items-center justify-between mb-3 px-1">
+                        <span className="text-[12px] font-semibold text-[var(--text-secondary)] uppercase tracking-tight">Loaded Candidates</span>
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if(window.confirm("Delete all resumes from cloud?")) {
+                                    onRemoveFile('__ALL__');
+                                }
+                            }}
+                            className="text-[11px] font-bold text-[var(--red)] hover:bg-[var(--red-subtle)] px-2 py-1 rounded transition-colors uppercase tracking-wider"
+                        >
+                            Clear All
+                        </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {uploadedFiles.map(file => (
+                            <div key={file} className="flex items-center gap-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-3 py-1.5 shadow-sm">
+                                <FileText size={14} className="text-[var(--text-secondary)]" />
+                                <span className="text-[13px] font-medium text-[var(--text-primary)] truncate max-w-[200px]">{file}</span>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onRemoveFile(file);
+                                    }}
+                                    className="text-[var(--text-tertiary)] hover:text-[var(--red)] transition-colors ml-1"
+                                >
+                                    <X size={14} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>
