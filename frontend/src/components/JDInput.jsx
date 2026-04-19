@@ -25,7 +25,7 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
         <div className="w-full max-w-2xl mx-auto flex flex-col gap-4">
             <div className="flex items-center justify-between px-2">
                 <div className="flex items-center gap-3">
-                    <label className="text-[10px] font-black text-black/20 uppercase tracking-[0.4em]">
+                    <label className="text-[10px] font-black text-black/60 uppercase tracking-[0.4em]">
                         Job Skills
                     </label>
                     <div className="flex items-center gap-1.5">
