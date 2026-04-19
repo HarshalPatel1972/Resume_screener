@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Layout, RefreshCw, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import TopNav from './components/TopNav';
 import UploadSection from './components/UploadSection';
 import JDInput from './components/JDInput';
 import ResultCard from './components/ResultCard';
@@ -22,6 +22,9 @@ function App() {
   const [comparison, setComparison] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
+  // Phase flags
+  const isResultsMode = results.length > 0;
+
   const handleUpload = async (files) => {
     setUploadStatus('Syncing...');
     const formData = new FormData();
@@ -30,13 +33,17 @@ function App() {
     try {
       const res = await axios.post(`${API_BASE}/upload-resumes`, formData);
       setUploadStatus(`Ready (${res.data.count})`);
-      // Update local file list
       const newFiles = files.map(f => f.name);
       setUploadedFiles(prev => [...new Set([...prev, ...newFiles])]);
+      setError('');
     } catch (err) {
       setUploadStatus('Sync failed');
       setError('Check backend connection');
     }
+  };
+
+  const handleRemoveFile = (filename) => {
+    setUploadedFiles(prev => prev.filter(f => f !== filename));
   };
 
   const handleRank = async () => {
@@ -75,113 +82,116 @@ function App() {
     }
   };
 
+  const resetToSetup = () => {
+    setResults([]);
+    setSelectedCandidates([]);
+    setComparison(null);
+  };
+
   return (
-    <div className="relative h-screen w-screen flex text-slate-200 overflow-hidden font-sans">
-      <div className="mesh-gradient" />
+    <div className="min-h-screen w-full bg-[var(--bg-base)] text-[var(--text-primary)] font-[Inter] overflow-x-hidden">
 
-      {/* Sidebar - Uploaded Assets */}
-      <aside className="w-80 border-r border-white/5 bg-black/20 backdrop-blur-3xl flex flex-col z-20">
-        <div className="p-8 border-b border-white/5">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="h-8 w-8 bg-emerald-500 rounded-lg shadow-lg shadow-emerald-500/20" />
-            <span className="font-black text-xl tracking-tighter text-white">SleekScan</span>
-          </div>
-          <UploadSection onUpload={handleUpload} status={uploadStatus} />
-        </div>
+      <TopNav
+        uploadedCount={uploadedFiles.length}
+        onUploadClick={resetToSetup}
+        onReset={resetToSetup}
+      />
 
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-          <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6 px-2">Knowledge Base</h3>
-          <div className="space-y-1">
-            {uploadedFiles.length > 0 ? (
-              uploadedFiles.map(file => (
-                <div key={file} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-default transition-colors group">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500/40 group-hover:bg-emerald-500 transition-colors" />
-                  <span className="text-sm font-medium text-slate-400 group-hover:text-slate-200 truncate">{file}</span>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-10 opacity-30">
-                <Layout size={24} className="mx-auto mb-2" />
-                <p className="text-[10px] uppercase font-bold tracking-widest">No resumes</p>
-              </div>
-            )}
-          </div>
-        </div>
+      <main className="max-w-[760px] mx-auto pt-24 px-6 pb-24">
 
-        {selectedCandidates.length === 2 && (
-          <div className="p-6 border-t border-white/5 bg-emerald-500/5">
-            <button
-              onClick={triggerComparison}
-              className="w-full bg-emerald-500 text-slate-950 font-black py-4 rounded-2xl text-[11px] uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-emerald-500/10"
-            >
-              Compare Selection
-            </button>
-          </div>
-        )}
-      </aside>
-
-      {/* Main Workspace */}
-      <main className="flex-1 flex flex-col relative z-10 overflow-y-auto custom-scrollbar">
-        <div className="max-w-4xl mx-auto w-full px-8 py-16 flex-1 flex flex-col">
-
-          {/* Header */}
-          <header className={`transition-all duration-1000 ${results.length > 0 ? 'mb-10 text-left' : 'flex-1 flex flex-col justify-center text-center'}`}>
+        {/* Setup Phase */}
+        <AnimatePresence mode="wait">
+          {!isResultsMode && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              key="setup"
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full flex flex-col items-center"
             >
-              <h1 className={`${results.length > 0 ? 'text-2xl' : 'text-5xl'} font-black mb-4 tracking-tight`}>
-                How can I <span className="text-emerald-500 underline underline-offset-8 decoration-white/10">analyze</span> your candidates today?
+              <h1 className="font-['Instrument_Serif'] text-[48px] md:text-[56px] font-normal leading-tight tracking-tight text-center mb-2 italic">
+                Who's the right fit?
               </h1>
-              {results.length === 0 && (
-                <p className="text-slate-500 text-lg font-medium max-w-xl mx-auto">
-                  Paste the requirements below and I'll rank your uploaded candidates based on semantic relevance and expertise.
-                </p>
-              )}
+              <p className="text-[15px] text-[var(--text-secondary)] text-center mb-10">
+                Describe the role and I'll rank your candidates by relevance.
+              </p>
+
+              <div className="w-full space-y-10">
+                <UploadSection
+                  onUpload={handleUpload}
+                  status={uploadStatus}
+                  uploadedFiles={uploadedFiles}
+                  onRemoveFile={handleRemoveFile}
+                />
+
+                <JDInput
+                  value={jd}
+                  onChange={setJd}
+                  onRank={handleRank}
+                  loading={loading}
+                  disabled={uploadedFiles.length === 0}
+                />
+              </div>
             </motion.div>
-          </header>
+          )}
 
-          {/* Input Area */}
-          <div className={`${results.length > 0 ? 'mb-16' : 'mb-24'}`}>
-            <JDInput value={jd} onChange={setJd} onRank={handleRank} loading={loading} />
-          </div>
+          {/* Results Phase */}
+          {isResultsMode && (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="font-['Instrument_Serif'] text-[32px] font-normal italic">
+                  Analysis Results
+                </h2>
+                {selectedCandidates.length === 2 && (
+                  <button
+                    onClick={triggerComparison}
+                    className="text-[14px] font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors"
+                  >
+                    Compare top 2
+                  </button>
+                )}
+              </div>
 
-          {/* Results Flow */}
-          <AnimatePresence mode="popLayout">
-            {error && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8 p-4 bg-rose-500/5 border border-rose-500/20 rounded-2xl text-rose-400 text-xs font-bold text-center">
-                {error}
-              </motion.div>
-            )}
-
-            {results.length > 0 && (
-              <div className="space-y-12 pb-24 border-t border-white/5 pt-12">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="h-0.5 flex-1 bg-white/5" />
-                  <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">Analysis Completed</span>
-                  <div className="h-0.5 flex-1 bg-white/5" />
-                </div>
+              <div className="space-y-3">
                 {results.map((candidate, idx) => (
                   <motion.div
                     key={candidate.filename}
-                    initial={{ opacity: 0, y: 40 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
+                    transition={{ delay: idx * 0.06, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <ResultCard
                       candidate={candidate}
                       onCompareSelect={handleCompareSelect}
                       isSelected={selectedCandidates.includes(candidate.filename)}
+                      rank={idx + 1}
                     />
                   </motion.div>
                 ))}
               </div>
-            )}
-          </AnimatePresence>
-        </div>
+
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {error && (
+          <div className="mt-8 p-4 bg-[var(--red-subtle)] border border-[var(--red)]/20 rounded-xl text-[var(--red)] text-[13px] font-medium text-center shadow-sm">
+            {error}
+          </div>
+        )}
+
       </main>
 
-      <ComparisonView comparison={comparison} onClose={() => setComparison(null)} />
+      {comparison && (
+        <ComparisonView comparison={comparison} onClose={() => setComparison(null)} />
+      )}
     </div>
   );
 }
