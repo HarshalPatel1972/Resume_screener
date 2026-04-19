@@ -2,7 +2,7 @@ import { UploadCloud, Database } from 'lucide-react';
 
 const TopNav = ({ uploadedCount, onUploadClick, onReset, onRegistryClick }) => {
     return (
-        <nav className="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-5xl h-16 bg-white/30 backdrop-blur-2xl border border-white/60 shadow-[0_30px_100px_rgba(0,0,0,0.12)] z-[100] flex items-center justify-between px-8 rounded-[24px]">
+        <nav className="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-5xl h-16 bg-white/10 backdrop-blur-2xl border border-white/60 shadow-[0_30px_100px_rgba(0,0,0,0.12)] z-[100] flex items-center justify-between px-8 rounded-[24px]">
             <div
                 className="flex items-center gap-4 cursor-pointer group"
                 onClick={onReset}
