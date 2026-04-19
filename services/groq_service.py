@@ -58,3 +58,47 @@ def analyze_resume(job_description: str, resume_text: str):
             "weaknesses": "Error in analysis.",
             "decision": "Reject"
         }
+
+def compare_candidates(job_description: str, candidate_a_data: dict, candidate_b_data: dict):
+    """Generate a qualitative comparison between two candidates using Groq."""
+    
+    prompt = f"""
+    Compare these two candidates for the following Job Description.
+    
+    Job Description:
+    {job_description}
+    
+    Candidate A ({candidate_a_data['filename']}):
+    - Score: {candidate_a_data['llm_analysis']['score']}
+    - Matched Skills: {candidate_a_data['llm_analysis']['matched_skills']}
+    - Missing Skills: {candidate_a_data['llm_analysis']['missing_skills']}
+
+    Candidate B ({candidate_b_data['filename']}):
+    - Score: {candidate_b_data['llm_analysis']['score']}
+    - Matched Skills: {candidate_b_data['llm_analysis']['matched_skills']}
+    - Missing Skills: {candidate_b_data['llm_analysis']['missing_skills']}
+    
+    Provide a concise explanation of why one is better than the other, and identify the 'winner'.
+    
+    Expected JSON Structure:
+    {{
+      "better_candidate": "filename string",
+      "explanation": "concise explanation string"
+    }}
+    
+    Return ONLY valid JSON.
+    """
+    
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"},
+        )
+        return json.loads(chat_completion.choices[0].message.content)
+    except Exception as e:
+        print(f"Groq Comparison Error: {str(e)}")
+        return {
+            "better_candidate": candidate_a_data['filename'],
+            "explanation": "Could not generate AI comparison."
+        }
