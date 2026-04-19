@@ -17,7 +17,7 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
     }, [loading]);
 
     return (
-        <div className="w-full flex flex-col gap-4">
+        <div className="w-full max-w-2xl mx-auto flex flex-col gap-4">
             <div className="flex items-center justify-between px-2">
                 <label className="text-[10px] font-black text-black/20 uppercase tracking-[0.4em]">
                     Target Profile
