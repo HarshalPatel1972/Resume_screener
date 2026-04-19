@@ -20,18 +20,22 @@ function App() {
   const [error, setError] = useState('');
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [comparison, setComparison] = useState(null);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
 
   const handleUpload = async (files) => {
-    setUploadStatus('Uploading...');
+    setUploadStatus('Syncing...');
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
 
     try {
       const res = await axios.post(`${API_BASE}/upload-resumes`, formData);
-      setUploadStatus(`Successfully processed ${res.data.count} resumes.`);
+      setUploadStatus(`Ready (${res.data.count})`);
+      // Update local file list
+      const newFiles = files.map(f => f.name);
+      setUploadedFiles(prev => [...new Set([...prev, ...newFiles])]);
     } catch (err) {
-      setUploadStatus('Upload failed.');
-      setError('Check server connection.');
+      setUploadStatus('Sync failed');
+      setError('Check backend connection');
     }
   };
 
@@ -72,93 +76,95 @@ function App() {
   };
 
   return (
-    <div className="relative min-h-screen text-slate-200 overflow-x-hidden selection:bg-indigo-500/30">
+    <div className="relative h-screen w-screen flex text-slate-200 overflow-hidden font-sans">
       <div className="mesh-gradient" />
 
-      <div className="max-w-6xl mx-auto px-6 py-12 relative z-10">
-        <header className="mb-24 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            <h1 className="text-6xl font-black mb-6 tracking-tight">
-              <span className="text-gradient">Selection</span>
-              <span className="text-emerald-500"> Intelligence</span>
-            </h1>
-            <p className="text-slate-500 font-medium text-lg max-w-2xl mx-auto leading-relaxed">
-              Precision-engineered resume screening. Objective insights
-              delivered through Claude-level semantic analysis.
-            </p>
-          </motion.div>
-        </header>
+      {/* Sidebar - Uploaded Assets */}
+      <aside className="w-80 border-r border-white/5 bg-black/20 backdrop-blur-3xl flex flex-col z-20">
+        <div className="p-8 border-b border-white/5">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="h-8 w-8 bg-emerald-500 rounded-lg shadow-lg shadow-emerald-500/20" />
+            <span className="font-black text-xl tracking-tighter text-white">SleekScan</span>
+          </div>
+          <UploadSection onUpload={handleUpload} status={uploadStatus} />
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          {/* Controls */}
-          <div className="lg:col-span-5 space-y-10">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6 px-2">Knowledge Base</h3>
+          <div className="space-y-1">
+            {uploadedFiles.length > 0 ? (
+              uploadedFiles.map(file => (
+                <div key={file} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-default transition-colors group">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500/40 group-hover:bg-emerald-500 transition-colors" />
+                  <span className="text-sm font-medium text-slate-400 group-hover:text-slate-200 truncate">{file}</span>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-10 opacity-30">
+                <Layout size={24} className="mx-auto mb-2" />
+                <p className="text-[10px] uppercase font-bold tracking-widest">No resumes</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {selectedCandidates.length === 2 && (
+          <div className="p-6 border-t border-white/5 bg-emerald-500/5">
+            <button
+              onClick={triggerComparison}
+              className="w-full bg-emerald-500 text-slate-950 font-black py-4 rounded-2xl text-[11px] uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-emerald-500/10"
             >
-              <UploadSection onUpload={handleUpload} status={uploadStatus} />
-            </motion.div>
+              Compare Selection
+            </button>
+          </div>
+        )}
+      </aside>
 
+      {/* Main Workspace */}
+      <main className="flex-1 flex flex-col relative z-10 overflow-y-auto custom-scrollbar">
+        <div className="max-w-4xl mx-auto w-full px-8 py-16 flex-1 flex flex-col">
+
+          {/* Header */}
+          <header className={`transition-all duration-1000 ${results.length > 0 ? 'mb-10 text-left' : 'flex-1 flex flex-col justify-center text-center'}`}>
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
             >
-              <JDInput value={jd} onChange={setJd} onRank={handleRank} loading={loading} />
-            </motion.div>
-
-            <AnimatePresence>
-              {selectedCandidates.length === 2 && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.98, y: 10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.98, y: 10 }}
-                  className="glass-card p-8 rounded-[32px] border-emerald-500/20 bg-emerald-500/5 shadow-2xl"
-                >
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                      <RefreshCw size={20} className="text-emerald-400 animate-spin-slow" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-100 italic">Comparison Logic Active</h3>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-widest font-black">Ready for AI Verdict</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={triggerComparison}
-                    className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-4 rounded-2xl transition-all shadow-xl shadow-emerald-500/20 active:scale-[0.98]"
-                  >
-                    Generate Comparison
-                  </button>
-                </motion.div>
+              <h1 className={`${results.length > 0 ? 'text-2xl' : 'text-5xl'} font-black mb-4 tracking-tight`}>
+                How can I <span className="text-emerald-500 underline underline-offset-8 decoration-white/10">analyze</span> your candidates today?
+              </h1>
+              {results.length === 0 && (
+                <p className="text-slate-500 text-lg font-medium max-w-xl mx-auto">
+                  Paste the requirements below and I'll rank your uploaded candidates based on semantic relevance and expertise.
+                </p>
               )}
-            </AnimatePresence>
+            </motion.div>
+          </header>
+
+          {/* Input Area */}
+          <div className={`${results.length > 0 ? 'mb-16' : 'mb-24'}`}>
+            <JDInput value={jd} onChange={setJd} onRank={handleRank} loading={loading} />
           </div>
 
-          {/* Results */}
-          <div className="lg:col-span-7 space-y-8">
-            <AnimatePresence mode="popLayout">
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 text-rose-400 text-xs font-bold text-center"
-                >
-                  {error}
-                </motion.div>
-              )}
+          {/* Results Flow */}
+          <AnimatePresence mode="popLayout">
+            {error && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8 p-4 bg-rose-500/5 border border-rose-500/20 rounded-2xl text-rose-400 text-xs font-bold text-center">
+                {error}
+              </motion.div>
+            )}
 
-              {results.length > 0 ? (
-                results.map((candidate, idx) => (
+            {results.length > 0 && (
+              <div className="space-y-12 pb-24 border-t border-white/5 pt-12">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="h-0.5 flex-1 bg-white/5" />
+                  <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">Analysis Completed</span>
+                  <div className="h-0.5 flex-1 bg-white/5" />
+                </div>
+                {results.map((candidate, idx) => (
                   <motion.div
                     key={candidate.filename}
-                    layout
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 40 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1 }}
                   >
@@ -168,22 +174,12 @@ function App() {
                       isSelected={selectedCandidates.includes(candidate.filename)}
                     />
                   </motion.div>
-                ))
-              ) : (
-                <div className="h-[500px] flex flex-col items-center justify-center glass-card rounded-[40px] border-dashed border-white/5">
-                  <div className="relative mb-8 p-6 bg-slate-900/50 rounded-full">
-                    <Layout size={48} className="text-slate-700" />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-500 mb-2">Awaiting Data</h3>
-                  <p className="text-slate-600 max-w-[240px] text-center text-xs leading-relaxed font-medium">
-                    Upload resumes to initialize the screening pipeline.
-                  </p>
-                </div>
-              )}
-            </AnimatePresence>
-          </div>
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
+      </main>
 
       <ComparisonView comparison={comparison} onClose={() => setComparison(null)} />
     </div>
