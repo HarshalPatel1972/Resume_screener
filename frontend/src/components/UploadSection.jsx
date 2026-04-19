@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
-import { Upload, X, FileText } from 'lucide-react';
+import { Upload, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const UploadSection = ({ onUpload, status, uploadedFiles, onRemoveFile }) => {
+const UploadSection = ({ onUpload, status, lastFile }) => {
     const fileInputRef = useRef(null);
 
     const handleChange = (e) => {
@@ -14,7 +14,7 @@ const UploadSection = ({ onUpload, status, uploadedFiles, onRemoveFile }) => {
     const isSyncing = status === 'Syncing...';
 
     return (
-        <div className="w-full max-w-2xl mx-auto py-0 space-y-4 animate-in fade-in duration-1000">
+        <div className="w-full max-w-2xl mx-auto py-0 space-y-6 animate-in fade-in duration-1000">
             {/* Interactive Apple Drop Zone */}
             <div
                 onClick={() => !isSyncing && fileInputRef.current?.click()}
@@ -61,6 +61,31 @@ const UploadSection = ({ onUpload, status, uploadedFiles, onRemoveFile }) => {
                 </div>
             </div>
 
+            {/* Most Recent File Only */}
+            <AnimatePresence mode="popLayout">
+                {lastFile && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="group flex items-center justify-between bg-white border border-[#D2D2D7]/30 rounded-2xl px-6 py-4 hover:border-[#D2D2D7] hover:shadow-sm transition-all duration-500"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 bg-black/5 rounded-xl flex items-center justify-center text-black">
+                                <FileText size={18} strokeWidth={1.5} />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[14px] text-black font-bold truncate max-w-[240px] uppercase tracking-tight">{lastFile}</span>
+                                <span className="text-[10px] text-black/30 font-black uppercase tracking-widest mt-0.5">Recently Added</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 bg-green-500/5 px-3 py-1 rounded-full border border-green-500/10">
+                            <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-green-600/60">Ready</span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

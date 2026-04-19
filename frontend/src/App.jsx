@@ -22,6 +22,7 @@ function App() {
   const [comparison, setComparison] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [showRegistry, setShowRegistry] = useState(false);
+  const [lastUploaded, setLastUploaded] = useState(null);
 
   // Phase flags
   const isResultsMode = results.length > 0;
@@ -52,6 +53,7 @@ function App() {
       setUploadStatus(`Ready (${res.data.count})`);
       const newFiles = files.map(f => f.name);
       setUploadedFiles(prev => [...new Set([...prev, ...newFiles])]);
+      setLastUploaded(newFiles[newFiles.length - 1]);
     } catch (err) {
       setUploadStatus('Sync failed');
       const errorMsg = err.response?.data?.detail || 'Upload failed. Ensure resumes are valid text-based PDFs.';
@@ -170,6 +172,7 @@ function App() {
                   status={uploadStatus}
                   uploadedFiles={uploadedFiles}
                   onRemoveFile={handleRemoveFile}
+                  lastFile={lastUploaded}
                 />
 
                 <JDInput
@@ -315,26 +318,37 @@ function App() {
                     <p className="text-[14px] font-black uppercase tracking-widest leading-loose">No files added yet</p>
                   </div>
                 ) : (
-                  uploadedFiles.map((file, idx) => (
-                    <motion.div 
-                      key={file}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="group flex items-center justify-between bg-[#FBFBFD] border border-black/5 rounded-2xl px-5 py-4 hover:border-black/10 transition-all"
-                    >
-                      <div className="flex flex-col">
-                        <span className="text-[14px] font-bold text-black uppercase tracking-tight truncate max-w-[200px]">{file}</span>
-                        <span className="text-[10px] font-black text-black/20 uppercase tracking-widest mt-1">Ready</span>
-                      </div>
-                      <button 
-                         onClick={() => handleRemoveFile(file)}
-                         className="p-2 opacity-0 group-hover:opacity-100 text-black/30 hover:text-red-500 transition-all active:scale-90"
+                  uploadedFiles.map((file, idx) => {
+                    const candidateResult = results.find(r => r.filename === file);
+                    return (
+                      <motion.div 
+                        key={file}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="group flex items-center justify-between bg-[#FBFBFD] border border-black/5 rounded-2xl px-5 py-4 hover:border-black/10 transition-all"
                       >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                      </button>
-                    </motion.div>
-                  ))
+                        <div className="flex flex-col">
+                          <span className="text-[14px] font-bold text-black uppercase tracking-tight truncate max-w-[200px]">{file}</span>
+                          <div className="flex items-center gap-2 mt-1">
+                            {candidateResult ? (
+                                <span className={`text-[10px] font-black uppercase tracking-widest ${candidateResult.final_score > 0.7 ? 'text-green-500' : 'text-black/40'}`}>
+                                    MATCH: {Math.round(candidateResult.final_score * 100)}%
+                                </span>
+                            ) : (
+                                <span className="text-[10px] font-black text-black/20 uppercase tracking-widest">Ready</span>
+                            )}
+                          </div>
+                        </div>
+                        <button 
+                           onClick={() => handleRemoveFile(file)}
+                           className="p-2 opacity-0 group-hover:opacity-100 text-black/30 hover:text-red-500 transition-all active:scale-90"
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                      </motion.div>
+                    );
+                  })
                 )}
               </div>
 
