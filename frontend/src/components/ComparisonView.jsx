@@ -34,11 +34,13 @@ const ComparisonView = ({ comparison, onClose }) => {
                         <X size={20} strokeWidth={2.5} />
                     </button>
 
-                    <div className="mb-10">
-                        <h2 className="text-[28px] font-black leading-none mb-4 text-black tracking-tighter uppercase italic">
-                            The Verdict
-                        </h2>
-                        <div className="bg-[#FBFBFD] rounded-2xl p-6 text-[15px] font-medium leading-relaxed text-black/70 border border-[#D2D2D7]/30 shadow-inner">
+                    <div className="mb-10 overflow-hidden border border-[#D2D2D7]/40 rounded-[28px] bg-[#FBFBFD]">
+                        <div className="px-6 py-4 border-b border-black/[0.03] bg-black/[0.01]">
+                            <h2 className="text-[10px] font-black leading-none text-black/40 tracking-[0.4em] uppercase">
+                                The Decision
+                            </h2>
+                        </div>
+                        <div className="p-8 text-[15px] font-medium leading-relaxed text-black/70">
                             {comparison.reason}
                         </div>
                     </div>
@@ -46,35 +48,42 @@ const ComparisonView = ({ comparison, onClose }) => {
                     <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col md:flex-row gap-6">
 
                         {/* Candidate 1 */}
-                        <div className={`flex-1 flex flex-col p-6 rounded-[24px] border transition-all ${comparison.better_candidate === c1.filename ? 'border-black ring-4 ring-black/5' : 'border-[#D2D2D7]/30'}`}>
-                            <div className="flex justify-between items-start mb-4">
+                        <div className={`flex-1 flex flex-col p-8 rounded-[28px] border transition-all ${comparison.better_candidate === c1.filename ? 'border-black bg-black text-white shadow-2xl' : 'border-[#D2D2D7]/40 bg-white'}`}>
+                            <div className="flex justify-between items-start mb-8">
                                 <div>
-                                    {comparison.better_candidate === c1.filename && (
-                                        <div className="flex items-center gap-1.5 text-[10px] font-black text-black uppercase tracking-[0.2em] mb-4">
-                                            <div className="h-2 w-2 rounded-full bg-black animate-pulse" /> Selected Choice
-                                        </div>
-                                    )}
-                                    <h3 className="font-semibold text-[17px] text-[var(--text-primary)] truncate max-w-[150px]">
+                                    <h3 className={`font-black text-[18px] tracking-tighter uppercase italic truncate max-w-[180px] ${comparison.better_candidate === c1.filename ? 'text-white' : 'text-black'}`}>
                                         {c1.filename.replace('.pdf', '')}
                                     </h3>
+                                    <span className={`text-[10px] font-black uppercase tracking-widest mt-1 block ${comparison.better_candidate === c1.filename ? 'text-white/40' : 'text-black/30'}`}>
+                                        Candidate A
+                                    </span>
                                 </div>
                                 <div className="text-right">
-                                    <span className={`text-[24px] font-extrabold ${comparison.better_candidate === c1.filename ? 'text-[var(--accent)]' : 'text-[var(--text-primary)]'}`}>
+                                    <span className={`text-[28px] font-black tracking-tighter ${comparison.better_candidate === c1.filename ? 'text-white' : 'text-black'}`}>
                                         {Math.round(c1.final_score * 100)}%
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 <div>
-                                    <h4 className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">Experience</h4>
-                                    <p className="text-[14px] text-[var(--text-secondary)]">{c1.experience_years} years</p>
+                                    <h4 className={`text-[10px] font-black uppercase tracking-[0.3em] mb-2 ${comparison.better_candidate === c1.filename ? 'text-white/40' : 'text-black/30'}`}>Background</h4>
+                                    <p className={`text-[15px] font-bold ${comparison.better_candidate === c1.filename ? 'text-white' : 'text-black'}`}>{c1.experience_years} Years Experience</p>
                                 </div>
                                 <div>
-                                    <h4 className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">Key Strengths</h4>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {c1.matched_skills?.slice(0, 4).map((m, i) => (
-                                            <span key={i} className="text-[12px] bg-[var(--bg-sunken)] px-2 py-1 rounded-md text-[var(--text-secondary)]">{m}</span>
+                                    <h4 className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${comparison.better_candidate === c1.filename ? 'text-white/40' : 'text-black/30'}`}>Top Skills</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {c1.matched_skills?.slice(0, 3).map((m, i) => (
+                                            <span 
+                                                key={i} 
+                                                className={`text-[10px] font-black px-3 py-1.5 rounded-full border uppercase tracking-widest ${
+                                                    comparison.better_candidate === c1.filename 
+                                                    ? 'bg-white/10 border-white/10 text-white' 
+                                                    : 'bg-black/5 border-black/5 text-black'
+                                                }`}
+                                            >
+                                                {m}
+                                            </span>
                                         ))}
                                     </div>
                                 </div>
@@ -85,35 +94,42 @@ const ComparisonView = ({ comparison, onClose }) => {
                         <div className="hidden md:block w-px bg-[var(--border-strong)] my-4" />
 
                         {/* Candidate 2 */}
-                        <div className={`flex-1 flex flex-col p-6 rounded-[24px] border transition-all ${comparison.better_candidate === c2.filename ? 'border-black ring-4 ring-black/5' : 'border-[#D2D2D7]/30'}`}>
-                            <div className="flex justify-between items-start mb-4">
+                        <div className={`flex-1 flex flex-col p-8 rounded-[28px] border transition-all ${comparison.better_candidate === c2.filename ? 'border-black bg-black text-white shadow-2xl' : 'border-[#D2D2D7]/40 bg-white'}`}>
+                            <div className="flex justify-between items-start mb-8">
                                 <div>
-                                    {comparison.better_candidate === c2.filename && (
-                                        <div className="flex items-center gap-1 text-[11px] font-bold text-[var(--accent)] uppercase tracking-wider mb-2">
-                                            <Trophy size={12} /> Top Pick
-                                        </div>
-                                    )}
-                                    <h3 className="font-semibold text-[17px] text-[var(--text-primary)] truncate max-w-[150px]">
+                                    <h3 className={`font-black text-[18px] tracking-tighter uppercase italic truncate max-w-[180px] ${comparison.better_candidate === c2.filename ? 'text-white' : 'text-black'}`}>
                                         {c2.filename.replace('.pdf', '')}
                                     </h3>
+                                    <span className={`text-[10px] font-black uppercase tracking-widest mt-1 block ${comparison.better_candidate === c2.filename ? 'text-white/40' : 'text-black/30'}`}>
+                                        Candidate B
+                                    </span>
                                 </div>
                                 <div className="text-right">
-                                    <span className={`text-[24px] font-extrabold ${comparison.better_candidate === c2.filename ? 'text-[var(--accent)]' : 'text-[var(--text-primary)]'}`}>
+                                    <span className={`text-[28px] font-black tracking-tighter ${comparison.better_candidate === c2.filename ? 'text-white' : 'text-black'}`}>
                                         {Math.round(c2.final_score * 100)}%
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 <div>
-                                    <h4 className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">Experience</h4>
-                                    <p className="text-[14px] text-[var(--text-secondary)]">{c2.experience_years} years</p>
+                                    <h4 className={`text-[10px] font-black uppercase tracking-[0.3em] mb-2 ${comparison.better_candidate === c2.filename ? 'text-white/40' : 'text-black/30'}`}>Background</h4>
+                                    <p className={`text-[15px] font-bold ${comparison.better_candidate === c2.filename ? 'text-white' : 'text-black'}`}>{c2.experience_years} Years Experience</p>
                                 </div>
                                 <div>
-                                    <h4 className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">Key Strengths</h4>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {c2.matched_skills?.slice(0, 4).map((m, i) => (
-                                            <span key={i} className="text-[12px] bg-[var(--bg-sunken)] px-2 py-1 rounded-md text-[var(--text-secondary)]">{m}</span>
+                                    <h4 className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${comparison.better_candidate === c2.filename ? 'text-white/40' : 'text-black/30'}`}>Top Skills</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {c2.matched_skills?.slice(0, 3).map((m, i) => (
+                                            <span 
+                                                key={i} 
+                                                className={`text-[10px] font-black px-3 py-1.5 rounded-full border uppercase tracking-widest ${
+                                                    comparison.better_candidate === c2.filename 
+                                                    ? 'bg-white/10 border-white/10 text-white' 
+                                                    : 'bg-black/5 border-black/5 text-black'
+                                                }`}
+                                            >
+                                                {m}
+                                            </span>
                                         ))}
                                     </div>
                                 </div>
