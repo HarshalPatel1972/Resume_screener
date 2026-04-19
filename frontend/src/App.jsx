@@ -159,7 +159,7 @@ function App() {
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="w-full flex flex-col items-center"
             >
-              <div className="flex flex-col items-center mb-16">
+              <div className="flex flex-col items-center mb-8">
                 <h1 className="font-['Instrument_Serif'] text-[48px] md:text-[68px] leading-tight font-normal tracking-[-0.04em] text-center italic bg-gradient-to-b from-black to-black/60 bg-clip-text text-transparent mb-2">
                   Who's the right fit?
                 </h1>
