@@ -1,44 +1,41 @@
 import numpy as np
-from services.embedding_service import get_embeddings, compute_similarity
+from services.embedding_service import compute_similarity
 
-def chunk_text(text: str, chunk_size: int = 400, overlap: int = 50) -> list[str]:
+def calculate_rag_rankings(jd_embedding: np.ndarray, chunk_repository: list[dict]):
     """
-    Split text into chunks of roughly `chunk_size` words with `overlap` words.
+    Groups chunks by filename and calculates RAG scores.
+    Returns: { filename: { "score": float, "evidence": [str, str] } }
     """
-    words = text.split()
-    if not words:
-        return []
+    if not chunk_repository:
+        return {}
         
-    chunks = []
-    start = 0
-    while start < len(words):
-        end = start + chunk_size
-        chunk = " ".join(words[start:end])
-        chunks.append(chunk)
-        if end >= len(words):
-            break
-        start += (chunk_size - overlap)
+    # Group chunk data
+    files_data = {}
+    for item in chunk_repository:
+        fname = item["filename"]
+        if fname not in files_data:
+            files_data[fname] = {"embeddings": [], "texts": []}
+        files_data[fname]["embeddings"].append(item["embedding"])
+        files_data[fname]["texts"].append(item["chunk"])
         
-    return chunks
-
-def get_rag_score(jd_embedding: np.ndarray, resume_chunks: list[dict]) -> float:
-    """
-    Compute RAG-based score for a single resume.
-    Compare JD with all chunks of the resume, take top 2 highest scores, and average them.
-    resume_chunks: list of {"embedding": np.ndarray, ...}
-    """
-    if not resume_chunks:
-        return 0.0
+    results = {}
+    for fname, data in files_data.items():
+        # Compute scores for all chunks of this file
+        scores = compute_similarity(jd_embedding, data["embeddings"])
         
-    chunk_embeddings = [c["embedding"] for c in resume_chunks]
-    
-    # compute_similarity returns a list of scores for each chunk compared to JD
-    scores = compute_similarity(jd_embedding, chunk_embeddings)
-    
-    # Sort scores descending
-    scores.sort(reverse=True)
-    
-    # Take top 2 (or 1 if only one chunk exists)
-    top_scores = scores[:2]
-    
-    return float(np.mean(top_scores))
+        # Zip scores with texts
+        scored_chunks = sorted(zip(scores, data["texts"]), key=lambda x: x[0], reverse=True)
+        
+        # Take top 2 chunks as evidence
+        top_2_evidence = [text for score, text in scored_chunks[:2]]
+        
+        # Final RAG score: average of top 2
+        top_2_scores = [score for score, text in scored_chunks[:2]]
+        rag_score = float(np.mean(top_2_scores)) if top_2_scores else 0.0
+        
+        results[fname] = {
+            "score": rag_score,
+            "evidence": top_2_evidence
+        }
+        
+    return results
