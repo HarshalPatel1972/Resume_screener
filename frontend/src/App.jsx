@@ -142,7 +142,7 @@ function App() {
         onReset={resetToSetup}
       />
 
-      <main className="max-w-[760px] mx-auto pt-16 px-6 pb-24">
+      <main className="max-w-[760px] mx-auto pt-36 px-6 pb-24">
 
         {/* Setup Phase */}
         <AnimatePresence mode="wait">
