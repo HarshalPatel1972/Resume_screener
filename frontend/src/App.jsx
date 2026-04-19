@@ -238,9 +238,39 @@ function App() {
         </AnimatePresence>
 
         {error && (
-          <div className="mt-8 p-4 bg-[var(--red-subtle)] border border-[var(--red)]/20 rounded-xl text-[var(--red)] text-[13px] font-medium text-center shadow-sm">
-            {error}
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            className="mt-8 overflow-hidden bg-white border border-red-500/30 rounded-[20px] shadow-2xl shadow-red-500/5 group"
+          >
+            <div className="flex items-center gap-4 p-5">
+              <div className="h-10 w-10 shrink-0 bg-red-500 rounded-full flex items-center justify-center text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-[14px] font-black text-black uppercase tracking-widest leading-none mb-1">Attention Required</h4>
+                <p className="text-[13px] font-medium text-black/50 leading-relaxed">{error}</p>
+              </div>
+              <button 
+                onClick={() => setError('')}
+                className="p-2 hover:bg-black/5 rounded-full transition-colors text-black/20 hover:text-black"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div className="h-1 bg-red-500/10 w-full">
+              <motion.div 
+                initial={{ width: "100%" }}
+                animate={{ width: "0%" }}
+                transition={{ duration: 5 }}
+                onAnimationComplete={() => setError('')}
+                className="h-full bg-red-500" 
+              />
+            </div>
+          </motion.div>
         )}
 
       </main>
