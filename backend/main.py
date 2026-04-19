@@ -188,72 +188,108 @@ async def upload_resumes(files: list[UploadFile] = File(...)):
 
 @app.post("/rank")
 async def rank_resumes(request: RankRequest):
-    if not chunk_repository:
-        raise HTTPException(status_code=400, detail="No resumes uploaded")
-    
-    # 1. Embed JD
-    jd_embedding = get_embeddings([request.job_description])[0]
-    
-    # 2. RAG Ranking + Evidence
-    rag_data = calculate_rag_rankings(jd_embedding, chunk_repository)
-    
-    # 3. LLM Analysis
-    filenames = list(resume_full_texts.keys())
-    llm_analyses = await asyncio.gather(*[
-        asyncio.to_thread(analyze_resume, request.job_description, resume_full_texts[f])
-        for f in filenames
-    ])
-    
-    # 4. Normalize and Merge
-    results = []
-    for i, fname in enumerate(filenames):
-        llm = llm_analyses[i]
-        rag = rag_data[fname]
+    try:
+        if not chunk_repository:
+            raise HTTPException(status_code=400, detail="No resumes uploaded. Please upload resumes first.")
         
-        # Scorer: 0.7 * Sim + 0.3 * (AI/100)
-        final_score = (0.7 * rag["score"]) + (0.3 * (llm["score"] / 100))
+        if not request.job_description.strip():
+            raise HTTPException(status_code=400, detail="Job description cannot be empty.")
+
+        logger.info(f"--- Starting Ranking Process for {len(resume_full_texts)} resumes ---")
         
-        results.append({
-            "filename": fname,
-            "final_score": round(final_score, 2),
-            "similarity_score": round(rag["score"], 2),
-            "ai_score": llm["score"],
-            "matched_skills": llm["matched_skills"],
-            "missing_skills": llm["missing_skills"],
-            "experience_years": llm["experience_years"],
-            "meets_experience": llm["experience_years"] >= llm["required_experience"],
-            "evidence": rag["evidence"],
-            "decision": llm["decision"]
-        })
-    
-    # 5. Filter & Sort
-    # score >= 0.3, unique filenames (already unique in our dict keys), sort desc
-    filtered = [r for r in results if r["final_score"] >= 0.3]
-    filtered.sort(key=lambda x: x["final_score"], reverse=True)
-    
-    global latest_rankings
-    latest_rankings = filtered[:5] # Top 5 only
-    
-    # Add Rank Number
-    for idx, item in enumerate(latest_rankings):
-        item["rank"] = idx + 1
+        # 1. Embed JD
+        try:
+            jd_embeddings = await asyncio.to_thread(get_embeddings, [request.job_description])
+            if not jd_embeddings:
+                raise ValueError("Failed to generate embedding for job description")
+            jd_embedding = jd_embeddings[0]
+        except Exception as e:
+            logger.error(f"JD Embedding Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Embedding Error: {str(e)}")
         
-    return latest_rankings
+        # 2. RAG Ranking + Evidence
+        try:
+            rag_data = calculate_rag_rankings(jd_embedding, chunk_repository)
+        except Exception as e:
+            logger.error(f"RAG Calculation Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"RAG Error: {str(e)}")
+        
+        # 3. LLM Analysis
+        filenames = list(resume_full_texts.keys())
+        logger.info(f"Analyzing {len(filenames)} candidates with LLM...")
+        
+        llm_analyses = await asyncio.gather(*[
+            asyncio.to_thread(analyze_resume, request.job_description, resume_full_texts[f])
+            for f in filenames
+        ])
+        
+        # 4. Normalize and Merge
+        results = []
+        for i, fname in enumerate(filenames):
+            try:
+                llm = llm_analyses[i]
+                rag = rag_data.get(fname, {"score": 0.0, "evidence": []})
+                
+                # Scorer: 0.7 * Sim + 0.3 * (AI/100)
+                ai_score = llm.get("score", 0)
+                final_score = (0.7 * rag["score"]) + (0.3 * (ai_score / 100))
+                
+                results.append({
+                    "filename": fname,
+                    "final_score": round(final_score, 2),
+                    "similarity_score": round(rag["score"], 2),
+                    "ai_score": ai_score,
+                    "matched_skills": llm.get("matched_skills", []),
+                    "missing_skills": llm.get("missing_skills", []),
+                    "experience_years": llm.get("experience_years", 0),
+                    "meets_experience": llm.get("experience_years", 0) >= llm.get("required_experience", 0),
+                    "evidence": rag.get("evidence", []),
+                    "decision": llm.get("decision", "Reject")
+                })
+            except Exception as e:
+                logger.error(f"Merge error for {fname}: {str(e)}")
+                continue
+        
+        # 5. Filter & Sort
+        # Ensure we return at least something if anyone exists
+        results.sort(key=lambda x: x["final_score"], reverse=True)
+        
+        global latest_rankings
+        latest_rankings = results[:10] # Top 10
+        
+        # Add Rank Number
+        for idx, item in enumerate(latest_rankings):
+            item["rank"] = idx + 1
+            
+        logger.info(f"Ranking complete. Found {len(latest_rankings)} results.")
+        return latest_rankings
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        logger.error(f"CRITICAL Rank Error: {str(e)}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Ranking Pipeline Failed: {str(e)}")
 
 @app.post("/compare")
 async def compare_endpoint(request: CompareRequest):
-    c1 = next((r for r in latest_rankings if r["filename"] == request.candidates[0]), None)
-    c2 = next((r for r in latest_rankings if r["filename"] == request.candidates[1]), None)
-    
-    if not c1 or not c2:
-        raise HTTPException(status_code=404, detail="Candidates not found")
+    try:
+        c1 = next((r for r in latest_rankings if r["filename"] == request.candidates[0]), None)
+        c2 = next((r for r in latest_rankings if r["filename"] == request.candidates[1]), None)
         
-    res = await asyncio.to_thread(compare_candidates, request.job_description, c1, c2)
-    return {
-        "better_candidate": res["better_candidate"],
-        "reason": res["reason"],
-        "comparison": { c1["filename"]: c1, c2["filename"]: c2 }
-    }
+        if not c1 or not c2:
+            raise HTTPException(status_code=404, detail="Candidates not found in latest results. Please re-rank.")
+            
+        res = await asyncio.to_thread(compare_candidates, request.job_description, c1, c2)
+        return {
+            "better_candidate": res.get("better_candidate", "N/A"),
+            "reason": res.get("reason", "Unknown error in comparison"),
+            "comparison": { c1["filename"]: c1, c2["filename"]: c2 }
+        }
+    except Exception as e:
+        import traceback
+        logger.error(f"Compare Error: {str(e)}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Comparison tool failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
