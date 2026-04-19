@@ -146,7 +146,7 @@ function App() {
         onRegistryClick={() => setShowRegistry(!showRegistry)}
       />
 
-      <main className="max-w-[760px] mx-auto pt-24 px-6 pb-24">
+      <main className="max-w-[760px] mx-auto pt-[106px] px-6 pb-24">
 
         {/* Setup Phase */}
         <AnimatePresence mode="wait">
