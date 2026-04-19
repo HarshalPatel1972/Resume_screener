@@ -159,10 +159,10 @@ function App() {
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="w-full flex flex-col items-center"
             >
-              <h1 className="font-['Instrument_Serif'] text-[64px] md:text-[82px] font-normal leading-[0.9] tracking-[-0.04em] text-center mb-6 italic bg-gradient-to-b from-black to-black/60 bg-clip-text text-transparent">
-                Who's the<br />right fit?
+              <h1 className="font-['Instrument_Serif'] text-[48px] md:text-[60px] font-normal leading-tight tracking-[-0.03em] text-center mb-4 italic bg-gradient-to-b from-black to-black/60 bg-clip-text text-transparent">
+                Who's the right fit?
               </h1>
-              <p className="text-[14px] font-black text-black/20 text-center mb-12 leading-relaxed uppercase tracking-[0.4em]">
+              <p className="text-[11px] font-black text-black/20 text-center mb-8 leading-relaxed uppercase tracking-[0.4em]">
                 Intelligent candidate discovery
               </p>
 
