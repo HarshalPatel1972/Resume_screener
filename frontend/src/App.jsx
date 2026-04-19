@@ -159,14 +159,11 @@ function App() {
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="w-full flex flex-col items-center"
             >
-              <h1 className="font-['Instrument_Serif'] text-[64px] md:text-[86px] leading-[0.95] font-normal tracking-[-0.06em] text-center mb-8 italic text-black selection:bg-black selection:text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-                Who's the<br />right fit?
-              </h1>
-              <div className="relative mb-14">
-                <p className="text-[10px] font-black text-black/30 text-center uppercase tracking-[0.5em] animate-pulse">
-                  High-Precision Screening Engine
-                </p>
-                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-12 h-[1px] bg-black/5" />
+              <div className="flex flex-col items-center gap-10 mb-20">
+                <h1 className="font-['Instrument_Serif'] text-[64px] md:text-[88px] leading-none font-normal tracking-[-0.06em] text-center italic bg-gradient-to-b from-black to-black/50 bg-clip-text text-transparent px-2">
+                  Who's the right fit?
+                </h1>
+                <div className="h-0.5 w-12 bg-black/5 rounded-full" />
               </div>
 
               <div className="w-full space-y-4">
