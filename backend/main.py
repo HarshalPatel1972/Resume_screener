@@ -45,21 +45,50 @@ class CompareRequest(BaseModel):
 def health_check():
     return {"status": "healthy"}
 
+from dotenv import load_dotenv
+load_dotenv()
+
 @app.post("/upload-resumes")
 async def upload_resumes(files: list[UploadFile] = File(...)):
+    if not files:
+        raise HTTPException(status_code=400, detail="No files provided")
+        
     try:
-        logger.info(f"Received {len(files)} files for upload")
+        logger.info(f"--- Starting Upload Process for {len(files)} files ---")
         new_chunks_count = 0
         for file in files:
             fname = file.filename
-            content = await file.read()
-            # Wrap parsing and embedding in a thread to prevent blocking
-            text = await asyncio.to_thread(extract_text_from_pdf, content)
-            resume_full_texts[fname] = text
+            logger.info(f"Processing candidate file: {fname}")
             
-            chunks = chunk_text(text)
-            if chunks:
+            try:
+                content = await file.read()
+                if not content:
+                    logger.warning(f"File {fname} is empty, skipping.")
+                    continue
+                    
+                # Extract text
+                text = await asyncio.to_thread(extract_text_from_pdf, content)
+                if not text.strip():
+                    logger.warning(f"No text extracted from {fname}")
+                    continue
+                    
+                resume_full_texts[fname] = text
+                
+                # Chunk text
+                chunks = chunk_text(text)
+                if not chunks:
+                    logger.warning(f"Text too short to chunk in {fname}")
+                    continue
+                
+                # Generate embeddings
+                logger.info(f"Generating embeddings for {len(chunks)} chunks of {fname}")
                 embeddings = await asyncio.to_thread(get_embeddings, chunks)
+                
+                # Ensure we have embeddings for all chunks before adding to repository
+                if len(embeddings) != len(chunks):
+                    logger.error(f"Mismatch in embeddings ({len(embeddings)}) and chunks ({len(chunks)}) for {fname}")
+                    continue # Skip this file or raise error
+                
                 for i, chunk_content in enumerate(chunks):
                     chunk_repository.append({
                         "filename": fname,
@@ -67,12 +96,24 @@ async def upload_resumes(files: list[UploadFile] = File(...)):
                         "embedding": embeddings[i]
                     })
                     new_chunks_count += 1
-        logger.info(f"Processed {len(files)} files, generated {new_chunks_count} chunks.")
-        return {"count": len(files), "chunks": new_chunks_count}
+                    
+                logger.info(f"Successfully processed {fname}")
+                
+            except Exception as file_error:
+                logger.error(f"Failed to process file {fname}: {str(file_error)}")
+                # We continue with other files instead of crashing the whole request
+                continue
+                
+        logger.info(f"Batch processing complete. Total new chunks added: {new_chunks_count}")
+        return {
+            "count": len(files), 
+            "chunks": new_chunks_count, 
+            "status": "success" if new_chunks_count > 0 else "failed (no valid content extracted)"
+        }
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        logger.error(f"Upload error: {str(e)}\n{error_details}")
+        logger.error(f"CRITICAL Upload error: {str(e)}\n{error_details}")
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 @app.post("/rank")

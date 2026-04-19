@@ -10,7 +10,7 @@ import ComparisonView from './components/ComparisonView';
 
 const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? `http://${window.location.hostname}:8000`
-  : `https://${window.location.hostname}:8000`); // Fallback for other hosts
+  : `https://${window.location.hostname}`); // Production usually runs on standard ports (80/443)
 
 function App() {
   const [jd, setJd] = useState('');

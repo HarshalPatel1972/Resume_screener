@@ -5,7 +5,27 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+def get_groq_key():
+    key = os.getenv("GROQ_API_KEY")
+    if not key:
+        # Fallback check for common mistake where key is pasted as raw string in .env
+        env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+        if os.path.exists(env_path):
+            with open(env_path, "r") as f:
+                first_line = f.readline().strip()
+                if first_line.startswith("gsk_"):
+                    return first_line.split()[0]
+    return key
+
+client = None
+try:
+    groq_api_key = get_groq_key()
+    if groq_api_key:
+        client = Groq(api_key=groq_api_key)
+    else:
+        print("WARNING: GROQ_API_KEY not found in environment.")
+except Exception as e:
+    print(f"Error initializing Groq client: {e}")
 
 def analyze_resume(job_description: str, resume_text: str):
     """Analyze a resume against a job description using Groq LLM."""
@@ -32,17 +52,28 @@ def analyze_resume(job_description: str, resume_text: str):
     Return ONLY JSON.
     """
     
+    if not client:
+        return {
+            "score": 0, "matched_skills": [], "missing_skills": [], 
+            "strengths": "Groq client not initialized", "weaknesses": "Check API key", 
+            "experience_years": 0, "required_experience": 0, "decision": "Reject"
+        }
+
     try:
         completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model="llama-3.3-70b-versatile",
             response_format={"type": "json_object"},
         )
-        return json.loads(completion.choices[0].message.content)
+        content = completion.choices[0].message.content
+        if not content:
+            raise ValueError("Empty response from Groq")
+        return json.loads(content)
     except Exception as e:
+        print(f"Groq analyze error: {e}")
         return {
             "score": 0, "matched_skills": [], "missing_skills": [], 
-            "strengths": "Error", "weaknesses": "Error", 
+            "strengths": f"Error: {str(e)}", "weaknesses": "Error", 
             "experience_years": 0, "required_experience": 0, "decision": "Reject"
         }
 
@@ -58,12 +89,19 @@ def compare_candidates(job_description: str, candidate_a: dict, candidate_b: dic
     Return JSON:
     {{ "better_candidate": "filename", "reason": "concise explanation" }}
     """
+    if not client:
+        return {"better_candidate": "N/A", "reason": "Groq client not initialized"}
+
     try:
         completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model="llama-3.3-70b-versatile",
             response_format={"type": "json_object"},
         )
-        return json.loads(completion.choices[0].message.content)
-    except:
-        return {"better_candidate": "N/A", "reason": "Error comparing"}
+        content = completion.choices[0].message.content
+        if not content:
+            raise ValueError("Empty response from Groq")
+        return json.loads(content)
+    except Exception as e:
+        print(f"Groq compare error: {e}")
+        return {"better_candidate": "N/A", "reason": f"Error comparing: {str(e)}"}
