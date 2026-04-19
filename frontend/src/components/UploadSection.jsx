@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { Upload, X, FileText } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const UploadSection = ({ onUpload, status, uploadedFiles, onRemoveFile }) => {
     const fileInputRef = useRef(null);
