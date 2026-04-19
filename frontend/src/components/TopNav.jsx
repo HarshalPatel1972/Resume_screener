@@ -18,7 +18,7 @@ const TopNav = ({ uploadedCount, onUploadClick, onReset, onRegistryClick }) => {
                 >
                     <Database size={16} className="text-black/40" />
                     <span className="text-[11px] font-black text-black uppercase tracking-widest">
-                        {uploadedCount} Registry
+                        {uploadedCount} Files
                     </span>
                 </button>
                 <button

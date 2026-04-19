@@ -300,7 +300,7 @@ function App() {
               className="fixed top-0 right-0 h-full w-[400px] bg-white shadow-2xl z-[200] p-10 flex flex-col gap-8 border-l border-black/5"
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-[24px] font-black tracking-tighter uppercase italic">Registry</h3>
+                <h3 className="text-[24px] font-black tracking-tighter uppercase italic">File Cabinet</h3>
                 <button 
                   onClick={() => setShowRegistry(false)}
                   className="p-2 hover:bg-black/5 rounded-full transition-colors text-black/20 hover:text-black"
@@ -312,7 +312,7 @@ function App() {
               <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2">
                 {uploadedFiles.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center p-12 bg-black/5 rounded-3xl opacity-30">
-                    <p className="text-[14px] font-black uppercase tracking-widest leading-loose">The registry is empty</p>
+                    <p className="text-[14px] font-black uppercase tracking-widest leading-loose">No files added yet</p>
                   </div>
                 ) : (
                   uploadedFiles.map((file, idx) => (
@@ -325,7 +325,7 @@ function App() {
                     >
                       <div className="flex flex-col">
                         <span className="text-[14px] font-bold text-black uppercase tracking-tight truncate max-w-[200px]">{file}</span>
-                        <span className="text-[10px] font-black text-black/20 uppercase tracking-widest mt-1">Processed</span>
+                        <span className="text-[10px] font-black text-black/20 uppercase tracking-widest mt-1">Ready</span>
                       </div>
                       <button 
                          onClick={() => handleRemoveFile(file)}
@@ -343,7 +343,7 @@ function App() {
                   onClick={handleClearAll}
                   className="w-full h-14 bg-red-500 hover:bg-red-600 text-white font-black text-[12px] uppercase tracking-[0.2em] rounded-full transition-all active:scale-95 shadow-xl shadow-red-500/10"
                 >
-                  Purge Registry
+                  Clear All Files
                 </button>
               )}
             </motion.div>

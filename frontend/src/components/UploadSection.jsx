@@ -52,10 +52,10 @@ const UploadSection = ({ onUpload, status, uploadedFiles, onRemoveFile }) => {
                     </div>
                     <div className="text-center">
                         <h3 className="text-[21px] font-bold text-[#1D1D1F] tracking-tight">
-                            {isSyncing ? 'Digitizing Records' : 'Start your scan'}
+                            {isSyncing ? 'Reading Files' : 'Start here'}
                         </h3>
                         <p className="text-[15px] text-[#86868B] mt-1 font-medium">
-                            {isSyncing ? 'Hang tight, we\'re analyzing...' : 'Tap or drop candidate resumes'}
+                            {isSyncing ? 'Almost ready...' : 'Add candidate resumes (PDF)'}
                         </p>
                     </div>
                 </div>

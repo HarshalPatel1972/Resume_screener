@@ -26,7 +26,7 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
             <div className="flex items-center justify-between px-2">
                 <div className="flex items-center gap-3">
                     <label className="text-[10px] font-black text-black/20 uppercase tracking-[0.4em]">
-                        Requirement Stack
+                        Job Skills
                     </label>
                     <div className="flex items-center gap-1.5">
                         {[1, 2, 3].map((i) => (
@@ -41,12 +41,12 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
                 </div>
                 {!isQualityMet && !disabled && (
                     <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest leading-none">
-                        {remaining} {remaining === 1 ? 'Skill' : 'Skills'} Remaining
+                        Need {remaining} more items
                     </span>
                 )}
                 {isQualityMet && !disabled && (
                     <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest animate-pulse">
-                        Stack Finalized
+                        Ready to go
                     </span>
                 )}
             </div>
@@ -54,7 +54,7 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
             <textarea
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                placeholder="e.g. React, TypeScript, 5+ Years Experience, AWS..."
+                placeholder="What skills are you looking for? (e.g. Sales, Python, Marketing...)"
                 className={`
                     w-full min-h-[160px] bg-white border rounded-[24px] p-8 text-[15px] font-medium text-black 
                     placeholder-[#86868B]/40 focus:outline-none resize-none transition-all duration-500
@@ -73,14 +73,14 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
             >
                 {loading ? (
                     <span className="flex items-center gap-2">
-                        Synthesizing <span className="inline-block w-4 text-left ml-1">{dots}</span>
+                        Thinking <span className="inline-block w-4 text-left ml-1">{dots}</span>
                     </span>
                 ) : disabled ? (
-                    "Upload Resumes First"
+                    "Upload Files First"
                 ) : !isQualityMet ? (
-                    `Need ${remaining} More ${remaining === 1 ? 'Criteria' : 'Criterias'}`
+                    `Add ${remaining} more skills`
                 ) : (
-                    "Run Intelligence"
+                    "Start Ranking"
                 )}
             </button>
         </div>
