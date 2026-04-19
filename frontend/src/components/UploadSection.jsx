@@ -14,7 +14,7 @@ const UploadSection = ({ onUpload, status, uploadedFiles, onRemoveFile }) => {
     const isSyncing = status === 'Syncing...';
 
     return (
-        <div className="w-full max-w-2xl mx-auto py-12 space-y-12 animate-in fade-in zoom-in-95 duration-1000">
+        <div className="w-full max-w-2xl mx-auto py-0 space-y-4 animate-in fade-in zoom-in-95 duration-1000">
             {/* Interactive Apple Drop Zone */}
             <div
                 onClick={() => !isSyncing && fileInputRef.current?.click()}
@@ -39,7 +39,7 @@ const UploadSection = ({ onUpload, status, uploadedFiles, onRemoveFile }) => {
                 {/* Dynamic Background Pulse */}
                 <div className={`absolute inset-0 rounded-[32px] transition-opacity duration-1000 ${isSyncing ? 'bg-[#0066CC]/5 animate-pulse' : 'opacity-0 group-hover:opacity-100 bg-[#F5F5F7]'}`} />
 
-                <div className="relative flex flex-col items-center gap-6 z-10">
+                <div className="relative flex flex-col items-center gap-2 z-10">
                     <div className={`
                         w-16 h-16 rounded-full flex items-center justify-center transition-all duration-700
                         ${isSyncing ? 'bg-[#0066CC] rotate-180 scale-110' : 'bg-[#1D1D1F] group-hover:bg-[#0066CC] group-hover:shadow-[0_0_20px_rgba(0,102,204,0.3)]'}
