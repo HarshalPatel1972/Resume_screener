@@ -8,7 +8,7 @@ const TopNav = ({ uploadedCount, onUploadClick, onReset }) => {
                 className="flex items-center gap-3 cursor-pointer group"
                 onClick={onReset}
             >
-                <span className="font-[Inter] font-bold text-[15px] text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">SleekScan</span>
+                <span className="font-[Inter] font-bold text-[15px] text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">Resume Screener</span>
                 <span className="text-[var(--text-tertiary)] font-medium text-[13px] hidden sm:inline-block">Resume Intelligence</span>
             </div>
 
