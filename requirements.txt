@@ -5,7 +5,6 @@ python-dotenv==1.2.2
 pydantic==2.12.5
 groq==1.2.0
 PyMuPDF==1.27.2.2
-sentence-transformers==5.4.1
 scikit-learn==1.8.0
 numpy==2.4.4
-torch==2.11.0
+requests==2.33.1
