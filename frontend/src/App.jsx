@@ -21,6 +21,7 @@ function App() {
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [comparison, setComparison] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [showRegistry, setShowRegistry] = useState(false);
 
   // Phase flags
   const isResultsMode = results.length > 0;
@@ -140,6 +141,7 @@ function App() {
         uploadedCount={uploadedFiles.length}
         onUploadClick={resetToSetup}
         onReset={resetToSetup}
+        onRegistryClick={() => setShowRegistry(!showRegistry)}
       />
 
       <main className="max-w-[760px] mx-auto pt-36 px-6 pb-24">
@@ -278,6 +280,76 @@ function App() {
       {comparison && (
         <ComparisonView comparison={comparison} onClose={() => setComparison(null)} />
       )}
+
+      {/* Registry Drawer */}
+      <AnimatePresence>
+        {showRegistry && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowRegistry(false)}
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[150]"
+            />
+            <motion.div 
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: "spring", stiffness: 300, damping: 35 }}
+              className="fixed top-0 right-0 h-full w-[400px] bg-white shadow-2xl z-[200] p-10 flex flex-col gap-8 border-l border-black/5"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-[24px] font-black tracking-tighter uppercase italic">Registry</h3>
+                <button 
+                  onClick={() => setShowRegistry(false)}
+                  className="p-2 hover:bg-black/5 rounded-full transition-colors text-black/20 hover:text-black"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2">
+                {uploadedFiles.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-12 bg-black/5 rounded-3xl opacity-30">
+                    <p className="text-[14px] font-black uppercase tracking-widest leading-loose">The registry is empty</p>
+                  </div>
+                ) : (
+                  uploadedFiles.map((file, idx) => (
+                    <motion.div 
+                      key={file}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="group flex items-center justify-between bg-[#FBFBFD] border border-black/5 rounded-2xl px-5 py-4 hover:border-black/10 transition-all"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-[14px] font-bold text-black uppercase tracking-tight truncate max-w-[200px]">{file}</span>
+                        <span className="text-[10px] font-black text-black/20 uppercase tracking-widest mt-1">Processed</span>
+                      </div>
+                      <button 
+                         onClick={() => handleRemoveFile(file)}
+                         className="p-2 opacity-0 group-hover:opacity-100 text-black/30 hover:text-red-500 transition-all active:scale-90"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                      </button>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+
+              {uploadedFiles.length > 0 && (
+                <button 
+                  onClick={handleClearAll}
+                  className="w-full h-14 bg-red-500 hover:bg-red-600 text-white font-black text-[12px] uppercase tracking-[0.2em] rounded-full transition-all active:scale-95 shadow-xl shadow-red-500/10"
+                >
+                  Purge Registry
+                </button>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
