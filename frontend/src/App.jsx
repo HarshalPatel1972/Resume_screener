@@ -159,11 +159,13 @@ function App() {
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="w-full flex flex-col items-center"
             >
-              <div className="flex flex-col items-center gap-10 mb-20">
-                <h1 className="font-['Instrument_Serif'] text-[64px] md:text-[88px] leading-none font-normal tracking-[-0.06em] text-center italic bg-gradient-to-b from-black to-black/50 bg-clip-text text-transparent px-2">
+              <div className="flex flex-col items-center mb-16">
+                <h1 className="font-['Instrument_Serif'] text-[48px] md:text-[68px] leading-tight font-normal tracking-[-0.04em] text-center italic bg-gradient-to-b from-black to-black/60 bg-clip-text text-transparent mb-2">
                   Who's the right fit?
                 </h1>
-                <div className="h-0.5 w-12 bg-black/5 rounded-full" />
+                <p className="text-[15px] font-medium text-black/50 text-center max-w-[480px] leading-relaxed">
+                  Detail the skills you need and I'll rank your candidates by relevance.
+                </p>
               </div>
 
               <div className="w-full space-y-4">
