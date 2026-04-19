@@ -142,7 +142,7 @@ function App() {
         onReset={resetToSetup}
       />
 
-      <main className="max-w-[760px] mx-auto pt-28 px-6 pb-24">
+      <main className="max-w-[760px] mx-auto pt-32 px-6 pb-24">
 
         {/* Setup Phase */}
         <AnimatePresence mode="wait">
@@ -158,11 +158,11 @@ function App() {
               <h1 className="font-['Instrument_Serif'] text-[48px] md:text-[56px] font-normal leading-tight tracking-tight text-center mb-2 italic">
                 Who's the right fit?
               </h1>
-              <p className="text-[15px] text-[var(--text-secondary)] text-center mb-6">
+              <p className="text-[15px] font-medium text-black/30 text-center mb-4 leading-relaxed">
                 Describe the role and I'll rank your candidates by relevance.
               </p>
 
-              <div className="w-full space-y-10">
+              <div className="w-full space-y-4">
                 <UploadSection
                   onUpload={handleUpload}
                   status={uploadStatus}
