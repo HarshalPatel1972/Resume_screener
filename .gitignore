@@ -32,7 +32,15 @@ MANIFEST
 
 # Large files / Test data
 test_resume.pdf
+test_resume_2.pdf
 test_resume.docx
+Shivam_Resume.pdf
+create_test_pdf.py
+create_test_pdf_2.py
+test_backend_upload.py
+diagnose.py
+crash_log.txt
+server_log.txt
 
 # IDEs
 .vscode/
@@ -41,3 +49,6 @@ test_resume.docx
 # OS
 .DS_Store
 Thumbs.db
+
+# Node
+frontend/node_modules/
