@@ -272,7 +272,7 @@ function App() {
               <motion.div 
                 initial={{ width: "100%" }}
                 animate={{ width: "0%" }}
-                transition={{ duration: 5 }}
+                transition={{ duration: 10 }}
                 onAnimationComplete={() => setError('')}
                 className="h-full bg-red-500" 
               />
