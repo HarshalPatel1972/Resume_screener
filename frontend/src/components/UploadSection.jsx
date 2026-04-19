@@ -54,7 +54,7 @@ const UploadSection = ({ onUpload, status, lastFile }) => {
                         <h3 className="text-[21px] font-bold text-[#1D1D1F] tracking-tight">
                             {isSyncing ? 'Reading Files' : 'Start here'}
                         </h3>
-                        <p className="text-[15px] text-[#86868B] mt-1 font-medium">
+                        <p className="text-[15px] text-black/50 mt-1 font-medium">
                             {isSyncing ? 'Almost ready...' : 'Add candidate resumes (PDF)'}
                         </p>
                     </div>
@@ -76,12 +76,12 @@ const UploadSection = ({ onUpload, status, lastFile }) => {
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-[14px] text-black font-bold truncate max-w-[240px] uppercase tracking-tight">{lastFile}</span>
-                                <span className="text-[10px] text-black/30 font-black uppercase tracking-widest mt-0.5">Recently Added</span>
+                                <span className="text-[10px] text-black/50 font-black uppercase tracking-widest mt-0.5">Recently Added</span>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 bg-green-500/5 px-3 py-1 rounded-full border border-green-500/10">
                             <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-green-600/60">Ready</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-green-600/70">Ready</span>
                         </div>
                     </motion.div>
                 )}

@@ -30,7 +30,7 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
                 {/* Header Integration */}
                 <div className="flex items-center justify-between px-8 py-5 border-b border-black/[0.03] bg-black/[0.01]">
                     <div className="flex items-center gap-3">
-                        <label className="text-[10px] font-black text-black/40 uppercase tracking-[0.4em]">
+                        <label className="text-[10px] font-black text-black/60 uppercase tracking-[0.4em]">
                             Job Skills
                         </label>
                         <div className="flex items-center gap-1.5">
@@ -38,7 +38,7 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
                                 <div 
                                     key={i} 
                                     className={`h-1.5 w-4 rounded-full transition-all duration-700 ${
-                                        criteria.length >= i ? 'bg-black' : 'bg-black/5'
+                                        criteria.length >= i ? 'bg-black' : 'bg-black/10'
                                     }`} 
                                 />
                             ))}
@@ -60,7 +60,7 @@ const JDInput = ({ value, onChange, onRank, loading, disabled }) => {
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder="What skills are you looking for? (e.g. Sales, Python, Marketing...)"
-                    className="w-full min-h-[180px] bg-white p-8 text-[15px] font-medium text-black placeholder-[#86868B]/40 focus:outline-none resize-none transition-all duration-300"
+                    className="w-full min-h-[180px] bg-white p-8 text-[15px] font-medium text-black placeholder-black/30 focus:outline-none resize-none transition-all duration-300"
                 />
             </div>
 

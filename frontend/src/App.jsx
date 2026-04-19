@@ -162,7 +162,7 @@ function App() {
               <h1 className="font-['Instrument_Serif'] text-[48px] md:text-[60px] font-normal leading-tight tracking-[-0.03em] text-center mb-4 italic bg-gradient-to-b from-black to-black/60 bg-clip-text text-transparent">
                 Who's the right fit?
               </h1>
-              <p className="text-[11px] font-black text-black/20 text-center mb-8 leading-relaxed uppercase tracking-[0.4em]">
+              <p className="text-[11px] font-black text-black/40 text-center mb-8 leading-relaxed uppercase tracking-[0.4em]">
                 Intelligent candidate discovery
               </p>
 
@@ -257,7 +257,7 @@ function App() {
               </div>
               <div className="flex-1">
                 <h4 className="text-[14px] font-black text-black uppercase tracking-widest leading-none mb-1">Attention Required</h4>
-                <p className="text-[13px] font-medium text-black/50 leading-relaxed">{error}</p>
+                <p className="text-[13px] font-medium text-black/60 leading-relaxed">{error}</p>
               </div>
               <button 
                 onClick={() => setError('')}
@@ -332,11 +332,11 @@ function App() {
                           <span className="text-[14px] font-bold text-black uppercase tracking-tight truncate max-w-[200px]">{file}</span>
                           <div className="flex items-center gap-2 mt-1">
                             {candidateResult ? (
-                                <span className={`text-[10px] font-black uppercase tracking-widest ${candidateResult.final_score > 0.7 ? 'text-green-500' : 'text-black/40'}`}>
+                                <span className={`text-[10px] font-black uppercase tracking-widest ${candidateResult.final_score > 0.7 ? 'text-green-500' : 'text-black/50'}`}>
                                     MATCH: {Math.round(candidateResult.final_score * 100)}%
                                 </span>
                             ) : (
-                                <span className="text-[10px] font-black text-black/20 uppercase tracking-widest">Ready</span>
+                                <span className="text-[10px] font-black text-black/50 uppercase tracking-widest">Ready</span>
                             )}
                           </div>
                         </div>
