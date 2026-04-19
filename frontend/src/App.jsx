@@ -25,6 +25,21 @@ function App() {
   // Phase flags
   const isResultsMode = results.length > 0;
 
+  useEffect(() => {
+    const fetchExisting = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/resumes`);
+        if (res.data.resumes) {
+          setUploadedFiles(res.data.resumes);
+          setUploadStatus(`Ready (${res.data.resumes.length})`);
+        }
+      } catch (err) {
+        console.error("Failed to fetch existing resumes", err);
+      }
+    };
+    fetchExisting();
+  }, []);
+
   const handleUpload = async (files) => {
     setUploadStatus('Syncing...');
     setError('');

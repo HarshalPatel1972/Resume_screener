@@ -1,10 +1,13 @@
-from __future__ import annotations
-import asyncio
-import os
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import HTMLResponse
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from supabase import create_client, Client
+import numpy as np
+import json
+
+# Supabase Configuration
+SUPABASE_URL = "https://ngexukqvudjsyhkwovmx.supabase.co"
+SUPABASE_KEY = os.getenv("SUPABASE_KEY") or "sb_publishable_m0zc0T2UIo7X3LZ7mTEwjg_LMjlMztQ" 
+
+# Initialize Client
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Internal Imports
 from utils.pdf_parser import extract_text_from_pdf
@@ -20,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AI Resume Screener API")
 
-# Enable CORS for React frontend (Must be added before other middlewares for preflight)
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,10 +32,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory storage
+# In-memory storage (Hydrated from Supabase on startup)
 chunk_repository: list[dict] = []
 resume_full_texts: dict[str, str] = {}
 latest_rankings: list[dict] = []
+
+@app.on_event("startup")
+async def startup_event():
+    # Hydrate memory from Supabase
+    try:
+        # 1. Fetch Resumes
+        res_resumes = supabase.table("resumes").select("*").execute()
+        for r in res_resumes.data:
+            resume_full_texts[r["filename"]] = r["full_text"]
+        
+        # 2. Fetch Chunks
+        res_chunks = supabase.table("chunks").select("*").execute()
+        for c in res_chunks.data:
+            # Embedding is stored as a list in JSONB format in Supabase
+            embedding = np.array(c["embedding"], dtype=np.float32)
+            chunk_repository.append({
+                "filename": c["filename"],
+                "chunk": c["chunk_text"],
+                "embedding": embedding
+            })
+            
+        logger.info(f"Supabase Hydration Complete: {len(resume_full_texts)} resumes, {len(chunk_repository)} chunks.")
+    except Exception as e:
+        logger.error(f"Failed to hydrate from Supabase: {str(e)}")
 
 class RankRequest(BaseModel):
     job_description: str
@@ -41,12 +68,10 @@ class CompareRequest(BaseModel):
     job_description: str
     candidates: list[str]
 
-@app.get("/")
-def health_check():
-    return {"status": "healthy"}
-
-from dotenv import load_dotenv
-load_dotenv()
+@app.get("/resumes")
+async def get_uploaded_resumes():
+    """Returns the list of filenames currently in the persistent cloud database."""
+    return {"resumes": list(resume_full_texts.keys())}
 
 @app.post("/upload-resumes")
 async def upload_resumes(files: list[UploadFile] = File(...)):
@@ -54,7 +79,7 @@ async def upload_resumes(files: list[UploadFile] = File(...)):
         raise HTTPException(status_code=400, detail="No files provided")
         
     try:
-        logger.info(f"--- Starting Upload Process for {len(files)} files ---")
+        logger.info(f"--- Starting Supabase Upload Process for {len(files)} files ---")
         new_chunks_count = 0
         processing_errors = []
 
@@ -70,12 +95,13 @@ async def upload_resumes(files: list[UploadFile] = File(...)):
                     
                 # Extract text
                 text = await asyncio.to_thread(extract_text_from_pdf, content)
-                logger.info(f"Extracted {len(text)} chars from {fname}")
                 
                 if not text.strip():
                     processing_errors.append(f"{fname}: No readable text (might be scanned/image-only PDF)")
                     continue
                     
+                # 1. Save to Supabase (Metadata)
+                supabase.table("resumes").upsert({"filename": fname, "full_text": text}).execute()
                 resume_full_texts[fname] = text
                 
                 # Chunk text
@@ -92,15 +118,31 @@ async def upload_resumes(files: list[UploadFile] = File(...)):
                     processing_errors.append(f"{fname}: Embedding generation mismatch or failure")
                     continue
                 
+                # 2. Save Chunks + Embeddings to Supabase
+                # Clean old chunks if re-uploading
+                supabase.table("chunks").delete().eq("filename", fname).execute()
+                
+                chunk_data_to_insert = []
                 for i, chunk_content in enumerate(chunks):
+                    emb = embeddings[i]
+                    # We store embedding as a list for JSONB compatibility
+                    chunk_data_to_insert.append({
+                        "filename": fname,
+                        "chunk_text": chunk_content,
+                        "embedding": emb.tolist()
+                    })
+                    
                     chunk_repository.append({
                         "filename": fname,
                         "chunk": chunk_content,
-                        "embedding": embeddings[i]
+                        "embedding": emb
                     })
                     new_chunks_count += 1
+                
+                if chunk_data_to_insert:
+                    supabase.table("chunks").insert(chunk_data_to_insert).execute()
                     
-                logger.info(f"Successfully processed {fname}")
+                logger.info(f"Successfully processed and stored {fname} in Supabase")
                 
             except Exception as file_error:
                 error_msg = f"{fname}: {str(file_error)}"
