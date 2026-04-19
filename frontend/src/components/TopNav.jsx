@@ -8,7 +8,7 @@ const TopNav = ({ uploadedCount, onUploadClick, onReset, onRegistryClick }) => {
                 onClick={onReset}
             >
                 <div className="h-2.5 w-2.5 rounded-full bg-black group-hover:scale-125 transition-all shadow-[0_0_10px_rgba(0,0,0,0.2)]" />
-                <span className="font-[Inter] font-extrabold text-[16px] text-black tracking-tighter uppercase italic">Resume Screener</span>
+                <span className="font-[Inter] font-extrabold text-[16px] text-black tracking-tight">Resume Screener</span>
             </div>
 
             <div className="flex items-center gap-4">

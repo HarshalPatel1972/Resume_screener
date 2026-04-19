@@ -61,7 +61,6 @@ const UploadSection = ({ onUpload, status, uploadedFiles, onRemoveFile }) => {
                 </div>
             </div>
 
-            </AnimatePresence>
         </div>
     );
 };
