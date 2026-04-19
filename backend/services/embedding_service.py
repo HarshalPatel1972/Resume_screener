@@ -8,7 +8,7 @@ load_dotenv()
 
 # Use HuggingFace Inference API (free) instead of loading model locally
 # This saves ~500MB RAM (no torch/sentence-transformers needed)
-HF_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
+HF_API_URL = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
 HF_TOKEN = os.getenv("HF_TOKEN", "")
 
 import time
