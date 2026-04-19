@@ -3,23 +3,30 @@ import { Search } from 'lucide-react';
 
 const JDInput = ({ value, onChange, onRank, loading }) => {
     return (
-        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl mb-8">
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-indigo-400">
-                <Search size={20} /> 2. Job Description
+        <div className="glass-card p-10 rounded-[32px] shadow-2xl">
+            <h3 className="text-xl font-bold mb-6 text-slate-100">
+                Target Criteria
             </h3>
             <textarea
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                placeholder="Paste the Job Description (JD) here to begin RAG analysis..."
-                className="w-full bg-slate-900 text-slate-100 border border-slate-700 rounded-xl p-4 min-height-[150px] focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow"
-                rows={6}
+                placeholder="Paste the Job Specification here..."
+                className="w-full bg-slate-800/50 text-slate-100 border border-slate-700/50 rounded-2xl p-6 min-height-[180px] focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all placeholder:text-slate-600 focus:bg-slate-800"
+                rows={8}
             />
             <button
                 onClick={onRank}
                 disabled={loading || !value}
-                className="mt-4 w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-indigo-500/20"
+                className="mt-6 w-full bg-slate-100 hover:bg-white disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold py-4 px-6 rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-2"
             >
-                {loading ? "🔮 Analyzing..." : "Run AI Screening Analysis"}
+                {loading ? (
+                    <>
+                        <div className="h-4 w-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                        Calculating Fit...
+                    </>
+                ) : (
+                    "Evaluate Candidates"
+                )}
             </button>
         </div>
     );
