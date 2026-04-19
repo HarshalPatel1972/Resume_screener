@@ -6,7 +6,7 @@ const ResultCard = ({ candidate, onCompareSelect, isSelected }) => {
             <div className="p-8">
                 <div className="flex justify-between items-start mb-10">
                     <div className="flex gap-6 items-center">
-                        <div className="h-16 w-16 rounded-2xl bg-slate-800 flex items-center justify-center font-black text-2xl text-slate-500 border border-slate-700">
+                        <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center font-black text-2xl text-slate-400 border border-white/5">
                             {candidate.rank}
                         </div>
                         <div>
@@ -14,7 +14,7 @@ const ResultCard = ({ candidate, onCompareSelect, isSelected }) => {
                                 {candidate.filename}
                             </h4>
                             <div className="flex items-center gap-4 mt-2">
-                                <span className="bg-slate-100 text-slate-950 text-[10px] font-black uppercase px-2 py-0.5 rounded tracking-tighter">
+                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded tracking-tighter ${candidate.decision === 'Shortlist' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-700 text-slate-300'}`}>
                                     {candidate.decision}
                                 </span>
                                 <span className="text-xs text-slate-500 font-medium">
@@ -26,7 +26,7 @@ const ResultCard = ({ candidate, onCompareSelect, isSelected }) => {
 
                     <div className="text-right">
                         <div className="text-4xl font-black text-white">{Math.round(candidate.final_score * 100)}%</div>
-                        <div className="text-[10px] text-indigo-400 font-black uppercase tracking-[0.2em] mt-1">Match Index</div>
+                        <div className="text-[10px] text-emerald-500 font-black uppercase tracking-[0.2em] mt-1">Match Index</div>
                     </div>
                 </div>
 
@@ -35,7 +35,7 @@ const ResultCard = ({ candidate, onCompareSelect, isSelected }) => {
                         <h5 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Competencies Found</h5>
                         <div className="flex flex-wrap gap-2">
                             {candidate.matched_skills.map((skill, idx) => (
-                                <span key={`${skill}-${idx}`} className="bg-white/5 text-slate-300 text-xs px-3 py-1.5 rounded-full border border-white/10 hover:bg-white/10 transition-colors">
+                                <span key={`${skill}-${idx}`} className="bg-emerald-500/5 text-emerald-400 text-xs px-3 py-1.5 rounded-full border border-emerald-500/10 transition-colors">
                                     {skill}
                                 </span>
                             ))}
@@ -45,7 +45,7 @@ const ResultCard = ({ candidate, onCompareSelect, isSelected }) => {
                         <h5 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Development Areas</h5>
                         <div className="flex flex-wrap gap-2">
                             {candidate.missing_skills.map((skill, idx) => (
-                                <span key={`${skill}-${idx}`} className="bg-rose-500/5 text-rose-300/80 text-xs px-3 py-1.5 rounded-full border border-rose-500/10 italic">
+                                <span key={`${skill}-${idx}`} className="bg-slate-800 text-slate-400 text-xs px-3 py-1.5 rounded-full border border-white/5 italic">
                                     {skill}
                                 </span>
                             ))}
@@ -54,7 +54,7 @@ const ResultCard = ({ candidate, onCompareSelect, isSelected }) => {
                 </div>
 
                 <div className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6">
-                    <h5 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Why this profile?</h5>
+                    <h5 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Core Context</h5>
                     {candidate.evidence.map((chunk, i) => (
                         <div key={i} className="text-sm text-slate-400 mb-3 last:mb-0 leading-relaxed font-medium">
                             "{chunk}"
@@ -65,9 +65,9 @@ const ResultCard = ({ candidate, onCompareSelect, isSelected }) => {
                 <div className="mt-8 pt-8 border-t border-white/5 flex justify-between items-center">
                     <button
                         onClick={() => onCompareSelect(candidate.filename)}
-                        className={`text-xs font-bold px-6 py-2.5 rounded-xl transition-all ${isSelected ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'}`}
+                        className={`text-xs font-bold px-6 py-2.5 rounded-xl transition-all ${isSelected ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/25' : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'}`}
                     >
-                        {isSelected ? 'Ready for Comparison' : 'Select to Compare'}
+                        {isSelected ? 'Comparison Queued' : 'Add to Comparison'}
                     </button>
                     <div className="flex gap-4 text-[10px] font-black text-slate-600 uppercase tracking-widest">
                         <span>Semantic: {Math.round(candidate.similarity_score * 100)}%</span>
