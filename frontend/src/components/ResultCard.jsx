@@ -35,7 +35,7 @@ const ResultCard = ({ candidate, onCompareSelect, isSelected, rank }) => {
                 }`}
         >
             <div
-                className="absolute top-4 left-[-16px] hidden md:flex items-center justify-center w-8 h-8 rounded-full bg-[var(--bg-surface)] border border-[var(--border)] text-[12px] font-bold text-[var(--accent)] shadow-sm"
+                className="absolute top-6 left-[-16px] hidden md:flex items-center justify-center w-8 h-8 rounded-full bg-white border border-black/5 text-[12px] font-black text-black shadow-lg shadow-black/5"
             >
                 #{rank}
             </div>
@@ -55,8 +55,8 @@ const ResultCard = ({ candidate, onCompareSelect, isSelected, rank }) => {
                         </span>
                     </div>
 
-                    <div className="text-[14px] text-[var(--text-secondary)]">
-                        {candidate.experience_years} years experience
+                    <div className="text-[14px] font-medium text-black/30 tracking-tight">
+                        {candidate.experience_years} years professional experience
                     </div>
                 </div>
 
@@ -107,10 +107,10 @@ const ResultCard = ({ candidate, onCompareSelect, isSelected, rank }) => {
             <div className="border-t border-[var(--border)] pt-4 mt-2 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <button
                     onClick={() => setExpanded(!expanded)}
-                    className="flex items-center gap-2 text-[13px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-black/5 rounded-full text-[12px] font-bold text-black hover:bg-black hover:text-white transition-all duration-300 active:scale-95"
                 >
-                    {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    AI Rationale & Evidence
+                    {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    Rationale
                 </button>
 
                 <label className="flex items-center gap-2 cursor-pointer group">
