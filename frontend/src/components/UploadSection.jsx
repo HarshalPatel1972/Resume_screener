@@ -71,15 +71,15 @@ const UploadSection = ({ onUpload, status, uploadedFiles, onRemoveFile }) => {
                     >
                         <div className="flex items-center justify-between px-2">
                             <div className="flex items-center gap-2">
-                                <span className="text-[13px] font-bold text-[#1D1D1F]">Ready to analyze</span>
-                                <span className="h-1.5 w-1.5 rounded-full bg-[#0066CC] animate-pulse" />
+                                <span className="text-[12px] font-black text-black/20 uppercase tracking-[0.3em]">Resource Registry</span>
+                                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
                             </div>
                             <button 
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    if(window.confirm("Cloud Reset?")) onRemoveFile('__ALL__');
+                                    if(window.confirm("Permanent cloud wipe?")) onRemoveFile('__ALL__');
                                 }}
-                                className="text-[13px] font-semibold text-[#0066CC] hover:text-[#004499] transition-colors cursor-pointer"
+                                className="flex items-center justify-center px-4 py-2 bg-white border border-black/10 rounded-full text-[11px] font-bold text-black hover:bg-black hover:text-white transition-all duration-300 active:scale-95 shadow-sm"
                             >
                                 Reset Registry
                             </button>
